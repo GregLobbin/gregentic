@@ -164,11 +164,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
       <div class="ctrl-sec">
         <div class="ctrl-lbl">Base Layer</div>
         <div class="ctrl-row">
-          <button class="tb active" id="btn-dark"    onclick="setStyle('dark')">DARK</button>
-          <button class="tb"        id="btn-sat"     onclick="setStyle('satellite')">SATELLITE</button>
-          <button class="tb"        id="btn-terrain" onclick="setStyle('terrain')">TERRAIN</button>
-          <button class="tb"        id="btn-topo"    onclick="setStyle('topo')">TOPO</button>
-          <button class="tb"        id="btn-street"  onclick="setStyle('street')">STREET</button>
+          <button class="tb active" id="btn-dark"     onclick="setStyle('dark')">DARK</button>
+          <button class="tb"        id="btn-sat"      onclick="setStyle('satellite')">SAT</button>
+          <button class="tb"        id="btn-sentinel" onclick="setStyle('sentinel')">SENTINEL-2</button>
+          <button class="tb"        id="btn-modis"    onclick="setStyle('modis')">MODIS</button>
+          <button class="tb"        id="btn-viirs"    onclick="setStyle('viirs')">VIIRS</button>
+          <button class="tb"        id="btn-terrain"  onclick="setStyle('terrain')">TERRAIN</button>
+          <button class="tb"        id="btn-topo"     onclick="setStyle('topo')">TOPO</button>
+          <button class="tb"        id="btn-street"   onclick="setStyle('street')">STREET</button>
         </div>
       </div>
       <div class="ctrl-sec">
@@ -176,8 +179,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
         <div class="ctrl-row">
           <button class="tb ov-on" id="btn-aircraft" onclick="toggleOverlay('aircraft')">◉ AIRCRAFT</button>
           <button class="tb"       id="btn-radar"    onclick="toggleOverlay('radar')">◉ WX RADAR</button>
+          <button class="tb"       id="btn-fires"    onclick="toggleOverlay('fires')">◉ FIRES</button>
+          <button class="tb"       id="btn-events"   onclick="toggleOverlay('events')">◉ EVENTS</button>
           <button class="tb"       id="btn-iss"      onclick="toggleOverlay('iss')">◉ ISS</button>
-          <button class="tb"       id="btn-military" onclick="toggleMilitary()">◉ MIL</button>
           <button class="tb"       onclick="refreshADSB()">↻ REFRESH</button>
         </div>
       </div>
@@ -232,23 +236,22 @@ const WMO={0:'Clear Sky',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Fog
 function wmoDesc(c){return WMO[c]||'Unknown';}
 function degCompass(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
 
+function gibsDate(n=2){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+
 const STYLES={
-  dark:    {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
+  dark:     {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
   satellite:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',ns:true},
-  terrain: {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',ns:true},
-  topo:    {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',ns:true},
-  street:  {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
+  sentinel: {url:'https://s2maps-tiles.eu/wmts/1.0.0/s2cloudless-2021_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpeg',ns:true},
+  modis:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible/{z}/{y}/{x}.jpg`,ns:true},
+  viirs:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible/{z}/{y}/{x}.jpg`,ns:true},
+  terrain:  {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',ns:true},
+  topo:     {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',ns:true},
+  street:   {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
 };
 
-let map,baseLayer,acLayer,radarLayer,issLayer,radiusCircle;
-let overlays={radar:false,aircraft:true,iss:false};
-let showMilitary=false;
+let map,baseLayer,acLayer,radarLayer,firesLayer,eventsLayer,issLayer,radiusCircle;
+let overlays={radar:false,aircraft:true,fires:false,events:false,iss:false};
 let issInterval=null;
-function toggleMilitary(){
-  showMilitary=!showMilitary;
-  document.getElementById('btn-military').classList.toggle('ov-iss',showMilitary);
-  refreshADSB();
-}
 
 function tick(){
   const n=new Date(),p=v=>String(v).padStart(2,'0');
@@ -265,11 +268,12 @@ function initMap(){
    .bindTooltip(cfg.loc).addTo(map);
   radiusCircle=L.circle([cfg.lat,cfg.lon],{radius:cfg.radius*1852,color:'#29b8d8',fillColor:'#29b8d8',fillOpacity:.03,weight:1,dashArray:'5 7'}).addTo(map);
   acLayer=L.layerGroup().addTo(map);
+  firesLayer=null; eventsLayer=null;
   issLayer=L.layerGroup();
 }
 
 function setStyle(name){
-  ['dark','sat','terrain','topo','street'].forEach(n=>document.getElementById('btn-'+n)?.classList.remove('active'));
+  ['dark','sat','sentinel','modis','viirs','terrain','topo','street'].forEach(n=>document.getElementById('btn-'+n)?.classList.remove('active'));
   document.getElementById('btn-'+name.replace('satellite','sat'))?.classList.add('active');
   const s=STYLES[name];
   if(baseLayer) map.removeLayer(baseLayer);
@@ -292,10 +296,44 @@ function toggleOverlay(name){
   document.getElementById('btn-'+name).classList.toggle(cls,overlays[name]);
   if(name==='radar'){overlays.radar?initRadar():(radarLayer&&(map.removeLayer(radarLayer),radarLayer=null));}
   if(name==='aircraft'){overlays.aircraft?acLayer.addTo(map):map.removeLayer(acLayer);}
+  if(name==='fires'){overlays.fires?initFires():(firesLayer&&(map.removeLayer(firesLayer),firesLayer=null));}
+  if(name==='events'){overlays.events?fetchEvents():(eventsLayer&&(map.removeLayer(eventsLayer),eventsLayer=null));}
   if(name==='iss'){
     if(overlays.iss){issLayer.addTo(map);fetchISS();issInterval=setInterval(fetchISS,10000);}
     else{map.removeLayer(issLayer);issLayer.clearLayers();clearInterval(issInterval);}
   }
+}
+
+// VIIRS fire hotspots tile overlay
+function initFires(){
+  if(firesLayer) map.removeLayer(firesLayer);
+  firesLayer=L.tileLayer(
+    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/${gibsDate(1)}/GoogleMapsCompatible/{z}/{y}/{x}.png`,
+    {opacity:.8,maxNativeZoom:8,maxZoom:19,zIndex:11}
+  ).addTo(map);
+}
+
+// NASA EONET natural events
+async function fetchEvents(){
+  try{
+    if(eventsLayer) map.removeLayer(eventsLayer);
+    eventsLayer=L.layerGroup().addTo(map);
+    const r=await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&limit=50');
+    if(!r.ok) throw new Error(`EONET HTTP ${r.status}`);
+    const d=await r.json();
+    const catColors={Wildfires:'#ff4500',Volcanoes:'#ff6600',SevereStorms:'#9b59b6',
+      Floods:'#3498db',Earthquakes:'#e74c3c',Drought:'#f39c12',Landslides:'#795548',SeaLakeIce:'#00bcd4'};
+    (d.events||[]).forEach(ev=>{
+      const coords=ev.geometry?.[ev.geometry.length-1]?.coordinates;
+      if(!coords) return;
+      const [lon,lat]=coords;
+      const cat=ev.categories?.[0]?.title||'Other';
+      const col=catColors[cat.replace(/\s/g,'')]||'#ff0000';
+      L.circleMarker([lat,lon],{radius:6,color:col,fillColor:col,fillOpacity:.7,weight:1})
+       .bindTooltip(`<b style="color:${col}">${ev.title}</b><br>${cat}<br>${ev.geometry[ev.geometry.length-1]?.date?.slice(0,10)||''}`)
+       .addTo(eventsLayer);
+    });
+  }catch(e){console.warn('EONET:',e);}
 }
 
 async function initRadar(){
