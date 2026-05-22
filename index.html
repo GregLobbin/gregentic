@@ -177,6 +177,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
           <button class="tb ov-on" id="btn-aircraft" onclick="toggleOverlay('aircraft')">◉ AIRCRAFT</button>
           <button class="tb"       id="btn-radar"    onclick="toggleOverlay('radar')">◉ WX RADAR</button>
           <button class="tb"       id="btn-iss"      onclick="toggleOverlay('iss')">◉ ISS</button>
+          <button class="tb"       id="btn-military" onclick="toggleMilitary()">◉ MIL</button>
           <button class="tb"       onclick="refreshADSB()">↻ REFRESH</button>
         </div>
       </div>
@@ -241,7 +242,13 @@ const STYLES={
 
 let map,baseLayer,acLayer,radarLayer,issLayer,radiusCircle;
 let overlays={radar:false,aircraft:true,iss:false};
+let showMilitary=false;
 let issInterval=null;
+function toggleMilitary(){
+  showMilitary=!showMilitary;
+  document.getElementById('btn-military').classList.toggle('ov-iss',showMilitary);
+  refreshADSB();
+}
 
 function tick(){
   const n=new Date(),p=v=>String(v).padStart(2,'0');
@@ -317,35 +324,48 @@ async function fetchISS(){
 }
 
 async function fetchADSB(){
-  const deg=cfg.radius/60;
-  const params=`lamin=${(cfg.lat-deg).toFixed(4)}&lomin=${(cfg.lon-deg).toFixed(4)}&lamax=${(cfg.lat+deg).toFixed(4)}&lomax=${(cfg.lon+deg).toFixed(4)}`;
   try{
-    let data;
+    let ac=[];
     if(WORKER_URL){
-      const r=await fetch(`${WORKER_URL}/adsb?${params}`,{signal:AbortSignal.timeout(10000)});
+      const r=await fetch(`${WORKER_URL}/adsb?lat=${cfg.lat}&lon=${cfg.lon}&dist=${cfg.radius}`,{signal:AbortSignal.timeout(15000)});
       if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
-      data=await r.json();
+      const data=await r.json();
+      if(data.error) throw new Error(data.error);
+      // OpenSky format: states array with positional indices
+      ac=(data.states||[]).filter(s=>s[5]&&s[6]&&!s[8])
+        .map(s=>({icao:s[0],cs:(s[1]||'').trim()||s[0],
+          lat:s[6],lon:s[5],
+          alt:s[7]?Math.round(s[7]*3.281):null,
+          spd:s[9]?Math.round(s[9]*1.944):null,
+          hdg:s[10]||0,type:'',mil:false,reg:''}))
+        .sort((a,b)=>(b.alt||0)-(a.alt||0));
     } else {
+      // Fallback: allorigins + OpenSky
+      const deg=cfg.radius/60;
+      const params=`lamin=${(cfg.lat-deg).toFixed(4)}&lomin=${(cfg.lon-deg).toFixed(4)}&lamax=${(cfg.lat+deg).toFixed(4)}&lomax=${(cfg.lon+deg).toFixed(4)}`;
       const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://opensky-network.org/api/states/all?'+params)}`,{signal:AbortSignal.timeout(15000)});
       if(!r.ok) throw new Error(`Proxy HTTP ${r.status}`);
-      data=JSON.parse((await r.json()).contents);
+      const data=JSON.parse((await r.json()).contents);
+      ac=(data.states||[]).filter(s=>s[5]&&s[6]&&!s[8])
+        .map(s=>({icao:s[0],cs:(s[1]||'').trim()||s[0],lat:s[6],lon:s[5],
+          alt:s[7]?Math.round(s[7]*3.281):null,spd:s[9]?Math.round(s[9]*1.944):null,
+          hdg:s[10]||0,type:'',mil:false,reg:''}))
+        .sort((a,b)=>(b.alt||0)-(a.alt||0));
     }
-    const ac=(data.states||[]).filter(s=>s[5]&&s[6]&&!s[8])
-      .map(s=>({icao:s[0],cs:(s[1]||'').trim()||s[0],lat:s[6],lon:s[5],
-        alt:s[7]?Math.round(s[7]*3.281):null,spd:s[9]?Math.round(s[9]*1.944):null,hdg:s[10]||0,ctry:s[2]}))
-      .sort((a,b)=>(b.alt||0)-(a.alt||0));
     acLayer.clearLayers();
     if(overlays.aircraft){
       ac.forEach(a=>{
-        const ic=L.divIcon({html:`<div style="color:#22c55e;font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px #22c55e88">▲</div>`,iconSize:[14,14],className:''});
+        const col=a.mil?'#f59e0b':'#22c55e';
+        const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
-         .bindTooltip(`<b style="color:#22c55e;font-family:monospace">${a.cs}</b><br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}`,{direction:'top'})
+         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${a.type?' · '+a.type:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MILITARY</span>':''}`,{direction:'top'})
          .addTo(acLayer);
       });
     }
-    document.getElementById('ac-count').textContent=`${ac.length} CONTACTS`;
+    const milCount=ac.filter(a=>a.mil).length;
+    document.getElementById('ac-count').textContent=`${ac.length} CONTACTS${milCount?` · ${milCount} MIL`:''}`;
     document.getElementById('adsb-list').innerHTML=ac.length
-      ?ac.slice(0,40).map(a=>`<div class="aci"><div class="ac-cs">${a.cs}</div><div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':'—'} | ${a.spd?a.spd+' KTS':'—'} | ${a.ctry}</div></div>`).join('')
+      ?ac.slice(0,40).map(a=>`<div class="aci"><div class="ac-cs" style="${a.mil?'color:var(--warn)':''}">${a.mil?'★ ':''}${a.cs}${a.type?' <small style="color:var(--muted)">${a.type}</small>':''}</div><div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':'—'} | ${a.spd?a.spd+' KTS':'—'}${a.reg?' | '+a.reg:''}</div></div>`).join('')
       :'<div class="msg">No airborne contacts in range</div>';
     dot('ab-dot',true);document.getElementById('sb-ab').textContent=ftm();
   }catch(e){
