@@ -3,138 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GREGENTIC // COP v0.4</title>
+<title>GREGENTIC // COP v0.5</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#080d13;--bg2:#0d1520;--bg3:#111d2a;
-  --border:#1a2d42;--accent:#00c8f0;--accent2:#00e87a;
-  --warn:#ff9a00;--danger:#ff3a3a;
-  --text:#c8dde8;--dim:#4a6a8a;
+  --bg:#0d1b2e;
+  --bg2:#132338;
+  --bg3:#172a42;
+  --border:#1f3a5c;
+  --accent:#29b8d8;
+  --accent2:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --text:#e2f0ff;
+  --dim:#7fb3d0;
+  --muted:#4a7599;
   --font:'Courier New',monospace
 }
-body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:14px}
 
-/* HEADER */
-#hdr{background:var(--bg2);border-bottom:2px solid var(--accent);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-#logo{color:var(--accent);font-size:18px;font-weight:bold;letter-spacing:5px}
+/* ── HEADER ───────────────────────────────────────────── */
+#hdr{background:var(--bg2);border-bottom:2px solid var(--accent);padding:7px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#logo{color:var(--accent);font-size:19px;font-weight:bold;letter-spacing:5px}
 #logo em{color:var(--accent2);font-style:normal}
-#logo .ver{color:var(--dim);font-size:10px;letter-spacing:2px;margin-left:8px;vertical-align:middle}
-#clock{font-size:26px;color:var(--accent);letter-spacing:3px}
-#hdr-right{display:flex;align-items:center;gap:10px}
-#date-line{font-size:11px;color:var(--dim);letter-spacing:1px;text-align:right}
-.hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:4px 10px;cursor:pointer;letter-spacing:1px;transition:all .2s}
+#logo .ver{color:var(--muted);font-size:11px;letter-spacing:2px;margin-left:8px}
+#clock{font-size:28px;color:var(--accent);letter-spacing:3px;font-weight:bold}
+#hdr-right{display:flex;align-items:center;gap:12px}
+#date-line{font-size:12px;color:var(--dim);letter-spacing:1px;text-align:right;line-height:1.6}
+.hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:5px 12px;cursor:pointer;letter-spacing:1px;transition:all .2s}
 .hbtn:hover{border-color:var(--accent);color:var(--accent)}
 
-/* MAIN GRID */
-#grid{display:grid;grid-template-columns:280px 1fr 310px;gap:1px;background:var(--border);flex:1;overflow:hidden;min-height:0}
+/* ── GRID ─────────────────────────────────────────────── */
+#grid{display:grid;grid-template-columns:290px 1fr 320px;gap:1px;background:var(--border);flex:1;overflow:hidden;min-height:0}
 .col{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-/* SECTION HEADERS */
-.sh{background:var(--bg2);padding:6px 12px;font-size:10px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.sh .dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:blink 2s infinite}
-.sh .dot.off{background:var(--danger);animation:none}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+/* ── SECTION HEADERS ──────────────────────────────────── */
+.sh{background:var(--bg3);padding:7px 12px;font-size:10px;letter-spacing:3px;color:var(--accent);border-bottom:1px solid var(--border);border-left:3px solid var(--accent);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sh.green{border-left-color:var(--accent2);color:var(--accent2)}
+.sh.warn{border-left-color:var(--warn);color:var(--warn)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent2);animation:blink 2s infinite}
+.dot.off{background:var(--danger);animation:none}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ── LEFT PANEL ────────────────────────────────────────── */
-/* Weather */
-#wx-body{padding:12px 14px;text-align:center;flex-shrink:0}
-#wx-temp{font-size:50px;color:var(--accent);line-height:1}
-#wx-desc{font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin:4px 0 10px}
-#wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.wxi{background:var(--bg2);border:1px solid var(--border);padding:7px;text-align:center}
-.wxi .l{font-size:9px;color:var(--dim);letter-spacing:1px}
-.wxi .v{font-size:13px;color:var(--text);margin-top:2px}
-#fc{padding:0 14px 10px;flex-shrink:0}
-.fcd{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+/* ── WEATHER ──────────────────────────────────────────── */
+#wx-body{padding:14px;text-align:center;flex-shrink:0}
+#wx-temp{font-size:56px;color:var(--accent);line-height:1;font-weight:bold}
+#wx-desc{font-size:12px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin:5px 0 12px}
+#wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wxi{background:var(--bg2);border:1px solid var(--border);padding:8px;text-align:center;border-radius:2px}
+.wxi .l{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.wxi .v{font-size:15px;color:var(--text);margin-top:3px;font-weight:bold}
+#fc{padding:0 14px 12px;flex-shrink:0}
+.fcd{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
 .fcd:last-child{border:none}
-.fct{color:var(--accent)}
+.fcd .day{color:var(--dim);width:32px}
+.fcd .cond{color:var(--muted);font-size:10px;flex:1;text-align:center}
+.fcd .temps{color:var(--accent);font-weight:bold}
 
-/* Markets */
-#mkt-body{padding:10px 14px;flex-shrink:0}
-.mkt-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid var(--border)}
+/* ── MARKETS ──────────────────────────────────────────── */
+#mkt-body{padding:10px 14px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.mkt-row{display:grid;grid-template-columns:70px 1fr auto 70px;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
 .mkt-row:last-child{border:none}
-.mkt-sym{font-size:10px;color:var(--dim);letter-spacing:2px;width:80px}
-.mkt-price{font-size:15px;color:var(--text);letter-spacing:1px}
-.mkt-chg{font-size:11px;text-align:right}
-.up{color:var(--accent2)}.dn{color:var(--danger)}
+.mkt-sym{font-size:10px;color:var(--dim);letter-spacing:1px}
+.mkt-price{font-size:16px;color:var(--text);font-weight:bold;letter-spacing:1px}
+.mkt-chg{font-size:11px;text-align:center}
+.up{color:var(--accent2)}.dn{color:var(--danger)}.flat{color:var(--dim)}
 
-/* News */
-#news-list{flex:1;overflow-y:auto;min-height:0}
-.ni{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer}
-.ni:hover{background:var(--bg2)}
-.nt{font-size:11px;color:var(--text);line-height:1.4;margin-bottom:3px}
-.nm{font-size:9px;color:var(--dim);letter-spacing:1px}
+/* ── HEADLINES ────────────────────────────────────────── */
+#news-list{overflow-y:auto;flex-shrink:0}
+.ni{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.ni:hover{background:var(--bg2);border-left-color:var(--accent)}
+.nt{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px}
+.nm{font-size:10px;color:var(--muted);letter-spacing:1px}
 
-/* ── CENTER PANEL ──────────────────────────────────────── */
+/* ── MAP ──────────────────────────────────────────────── */
+#map-hdr{background:var(--bg3);border-bottom:1px solid var(--border);padding:7px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+#map-hdr .label{font-size:10px;letter-spacing:3px;color:var(--accent)}
+#ac-count{color:var(--accent2);font-size:12px;font-weight:bold}
 #map-wrap{flex:1;position:relative;min-height:0}
 #map{position:absolute;inset:0}
-#map-hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-#map-hdr span{font-size:10px;letter-spacing:2px;color:var(--dim)}
-#ac-count{color:var(--accent2);font-size:11px}
 
-/* ── RIGHT PANEL ───────────────────────────────────────── */
-/* Map controls */
-#ctrl-body{padding:12px;flex-shrink:0;border-bottom:1px solid var(--border)}
-.ctrl-section{margin-bottom:12px}
-.ctrl-section:last-child{margin-bottom:0}
-.ctrl-label{font-size:9px;color:var(--dim);letter-spacing:2px;margin-bottom:6px}
-.ctrl-btns{display:flex;flex-wrap:wrap;gap:4px}
-.tb{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:10px;padding:4px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;white-space:nowrap}
-.tb:hover{border-color:var(--accent);color:var(--accent)}
-.tb.active{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:bold}
-.tb.ov-on{border-color:var(--accent2);color:var(--accent2);background:rgba(0,232,122,.07)}
+/* ── RIGHT: CONTROLS ──────────────────────────────────── */
+#ctrl-body{padding:12px 14px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.ctrl-sec{margin-bottom:12px}
+.ctrl-sec:last-child{margin-bottom:0}
+.ctrl-lbl{font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}
+.ctrl-row{display:flex;flex-wrap:wrap;gap:4px}
+.tb{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:10px;padding:5px 10px;cursor:pointer;letter-spacing:1px;transition:all .15s;white-space:nowrap}
+.tb:hover{border-color:var(--accent);color:var(--text)}
+.tb.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:bold}
+.tb.ov-on{border-color:var(--accent2);color:var(--accent2);background:rgba(34,197,94,.1)}
+.tb.ov-iss{border-color:var(--warn);color:var(--warn);background:rgba(245,158,11,.08)}
 
-/* Contacts */
-#adsb-list{flex:0 0 35%;overflow-y:auto;border-bottom:1px solid var(--border)}
-.aci{padding:7px 12px;border-bottom:1px solid var(--border)}
-.aci:hover{background:var(--bg2);cursor:default}
-.ac-cs{color:var(--accent2);font-size:12px;letter-spacing:2px}
-.ac-d{color:var(--dim);margin-top:2px;font-size:10px}
+/* ── CONTACTS ─────────────────────────────────────────── */
+#adsb-list{flex:0 0 38%;overflow-y:auto;border-bottom:1px solid var(--border)}
+.aci{padding:8px 12px;border-bottom:1px solid var(--border);border-left:2px solid transparent;transition:border-color .15s}
+.aci:hover{background:var(--bg2);border-left-color:var(--accent2)}
+.ac-cs{color:var(--accent2);font-size:13px;letter-spacing:2px;font-weight:bold}
+.ac-d{color:var(--dim);margin-top:3px;font-size:11px}
 
-/* Trending */
+/* ── TRENDING ─────────────────────────────────────────── */
 #trend-list{flex:1;overflow-y:auto;min-height:0}
-.tri{padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer}
-.tri:hover{background:var(--bg2)}
-.tr-t{font-size:11px;color:var(--text);line-height:1.4;margin-bottom:3px}
-.tr-m{font-size:9px;color:var(--dim)}
+.tri{padding:9px 12px;border-bottom:1px solid var(--border);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.tri:hover{background:var(--bg2);border-left-color:var(--warn)}
+.tr-t{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:3px}
+.tr-m{font-size:10px;color:var(--muted)}
 .hot{color:var(--warn)}
 
-/* STATUS BAR */
-#sb{background:var(--bg2);border-top:1px solid var(--border);padding:4px 14px;display:flex;gap:18px;font-size:9px;color:var(--dim);letter-spacing:1px;flex-shrink:0;align-items:center}
-#sb span{color:var(--accent)}
-.sb-brand{margin-left:auto;color:var(--border)}
+/* ── STATUS BAR ───────────────────────────────────────── */
+#sb{background:var(--bg2);border-top:2px solid var(--border);padding:5px 16px;display:flex;gap:20px;font-size:10px;color:var(--muted);letter-spacing:1px;flex-shrink:0;align-items:center}
+#sb span{color:var(--accent);font-weight:bold}
+.sb-brand{margin-left:auto;color:var(--border);font-size:9px}
 
-/* MODAL */
-#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;align-items:center;justify-content:center}
+/* ── MODAL ────────────────────────────────────────────── */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;align-items:center;justify-content:center}
 #modal.on{display:flex}
-#mbox{background:var(--bg2);border:1px solid var(--accent);padding:24px;width:400px}
-#mbox h2{color:var(--accent);font-size:12px;letter-spacing:3px;margin-bottom:16px}
+#mbox{background:var(--bg2);border:1px solid var(--accent);padding:24px;width:420px}
+#mbox h2{color:var(--accent);font-size:12px;letter-spacing:3px;margin-bottom:18px}
 .sr{margin-bottom:12px}
-.sr label{display:block;font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:4px}
-.sr input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:12px;padding:6px 8px}
+.sr label{display:block;font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.sr input{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px}
 .sr input:focus{outline:none;border-color:var(--accent)}
-.mbtns{display:flex;gap:8px;margin-top:16px}
-.btn{flex:1;background:none;border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:10px;padding:8px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}
+.mbtns{display:flex;gap:10px;margin-top:18px}
+.btn{flex:1;background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:9px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s}
 .btn.p{border-color:var(--accent);color:var(--accent)}
-.btn:hover{background:var(--bg3)}
+.btn:hover{background:var(--bg3);color:var(--text)}
 
-.msg{color:var(--dim);font-size:11px;padding:14px;text-align:center}
+.msg{color:var(--muted);font-size:12px;padding:16px;text-align:center}
 .err{color:var(--danger);font-size:11px;padding:10px;text-align:center;line-height:1.8}
 
-::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border)}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div id="hdr">
-  <div id="logo">GREG<em>ENTIC</em><span class="ver">v0.4</span>
-    <span style="color:var(--border);font-size:12px;margin-left:8px">// COMMON OPERATING PICTURE</span>
+  <div id="logo">GREG<em>ENTIC</em><span class="ver">v0.5</span>
+    <span style="color:var(--border);font-size:12px;margin-left:10px">// COMMON OPERATING PICTURE</span>
   </div>
   <div id="clock">--:--:-- Z</div>
   <div id="hdr-right">
@@ -145,51 +155,54 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
 
 <div id="grid">
 
-  <!-- ── LEFT: WEATHER / MARKETS / NEWS ──────────────── -->
+  <!-- ══ LEFT ══════════════════════════════════════════ -->
   <div class="col">
     <div class="sh"><span>METEOROLOGICAL</span><div class="dot" id="wx-dot"></div></div>
     <div id="wx-body"><div class="msg">ACQUIRING…</div></div>
     <div id="fc"></div>
 
-    <div class="sh"><span>MARKETS</span><div class="dot" id="mkt-dot"></div></div>
+    <div class="sh green"><span>MARKETS</span><div class="dot" id="mkt-dot"></div></div>
     <div id="mkt-body">
       <div class="mkt-row">
         <span class="mkt-sym">S&amp;P 500</span>
         <span class="mkt-price" id="t-sp">--</span>
-        <span class="mkt-chg"  id="t-sp-c">--</span>
+        <span class="mkt-chg"   id="t-sp-c"></span>
+        <span id="spark-sp"></span>
       </div>
       <div class="mkt-row">
         <span class="mkt-sym">BRENT</span>
         <span class="mkt-price" id="t-brent">--</span>
-        <span class="mkt-chg"  id="t-brent-c">--</span>
+        <span class="mkt-chg"   id="t-brent-c"></span>
+        <span id="spark-brent"></span>
       </div>
       <div class="mkt-row">
         <span class="mkt-sym">BTC/USD</span>
         <span class="mkt-price" id="t-btc">--</span>
-        <span class="mkt-chg"  id="t-btc-c">--</span>
+        <span class="mkt-chg"   id="t-btc-c"></span>
+        <span id="spark-btc"></span>
       </div>
     </div>
 
-    <div class="sh"><span>INTEL FEED</span><div class="dot" id="nw-dot"></div></div>
+    <div class="sh"><span>TOP HEADLINES</span><div class="dot" id="nw-dot"></div></div>
     <div id="news-list"><div class="msg">ACQUIRING…</div></div>
   </div>
 
-  <!-- ── CENTER: MAP ──────────────────────────────────── -->
+  <!-- ══ CENTER ═════════════════════════════════════════ -->
   <div class="col">
     <div id="map-hdr">
-      <span>AIR PICTURE // ADS-B</span>
+      <span class="label">AIR PICTURE // ADS-B</span>
       <span id="ac-count">-- CONTACTS</span>
     </div>
     <div id="map-wrap"><div id="map"></div></div>
   </div>
 
-  <!-- ── RIGHT: CONTROLS / CONTACTS / TRENDING ────────── -->
+  <!-- ══ RIGHT ══════════════════════════════════════════ -->
   <div class="col">
     <div class="sh"><span>MAP CONTROLS</span></div>
     <div id="ctrl-body">
-      <div class="ctrl-section">
-        <div class="ctrl-label">BASE LAYER</div>
-        <div class="ctrl-btns">
+      <div class="ctrl-sec">
+        <div class="ctrl-lbl">Base Layer</div>
+        <div class="ctrl-row">
           <button class="tb active" id="btn-dark"    onclick="setStyle('dark')">DARK</button>
           <button class="tb"        id="btn-sat"     onclick="setStyle('satellite')">SATELLITE</button>
           <button class="tb"        id="btn-terrain" onclick="setStyle('terrain')">TERRAIN</button>
@@ -197,142 +210,126 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
           <button class="tb"        id="btn-street"  onclick="setStyle('street')">STREET</button>
         </div>
       </div>
-      <div class="ctrl-section">
-        <div class="ctrl-label">OVERLAYS</div>
-        <div class="ctrl-btns">
+      <div class="ctrl-sec">
+        <div class="ctrl-lbl">Overlays</div>
+        <div class="ctrl-row">
           <button class="tb ov-on" id="btn-aircraft" onclick="toggleOverlay('aircraft')">◉ AIRCRAFT</button>
           <button class="tb"       id="btn-radar"    onclick="toggleOverlay('radar')">◉ WX RADAR</button>
+          <button class="tb"       id="btn-iss"      onclick="toggleOverlay('iss')">◉ ISS</button>
           <button class="tb"       onclick="refreshADSB()">↻ REFRESH</button>
         </div>
       </div>
-      <div class="ctrl-section">
-        <div class="ctrl-label">RANGE RINGS</div>
-        <div class="ctrl-btns">
-          <button class="tb" onclick="setRadius(25)">25 NM</button>
-          <button class="tb active" id="btn-50" onclick="setRadius(50)">50 NM</button>
-          <button class="tb" onclick="setRadius(100)">100 NM</button>
-          <button class="tb" onclick="setRadius(150)">150 NM</button>
+      <div class="ctrl-sec">
+        <div class="ctrl-lbl">Range Ring</div>
+        <div class="ctrl-row" id="ring-btns">
+          <button class="tb"        onclick="setRadius(25)">25 NM</button>
+          <button class="tb active" onclick="setRadius(50)">50 NM</button>
+          <button class="tb"        onclick="setRadius(100)">100 NM</button>
+          <button class="tb"        onclick="setRadius(150)">150 NM</button>
         </div>
       </div>
     </div>
 
-    <div class="sh"><span>CONTACTS</span><div class="dot" id="ab-dot"></div></div>
+    <div class="sh green"><span>CONTACTS</span><div class="dot" id="ab-dot"></div></div>
     <div id="adsb-list"><div class="msg">ACQUIRING…</div></div>
 
-    <div class="sh"><span>TRENDING // REDDIT</span><div class="dot" id="tr-dot"></div></div>
+    <div class="sh warn"><span>TRENDING // REDDIT</span><div class="dot" id="tr-dot"></div></div>
     <div id="trend-list"><div class="msg">ACQUIRING…</div></div>
   </div>
-
 </div>
 
-<!-- STATUS BAR -->
 <div id="sb">
   <div>WX <span id="sb-wx">--</span></div>
   <div>ADS-B <span id="sb-ab">--</span></div>
   <div>MKT <span id="sb-mkt">--</span></div>
   <div>FEED <span id="sb-nw">--</span></div>
   <div>RADIUS <span id="sb-r">50 NM</span></div>
-  <div class="sb-brand">GREGENTIC.COM // v0.4-MVP</div>
+  <div class="sb-brand">GREGENTIC.COM // v0.5-MVP</div>
 </div>
 
-<!-- CONFIG MODAL -->
 <div id="modal">
   <div id="mbox">
     <h2>⚙ CONFIGURATION</h2>
-    <div class="sr"><label>LOCATION NAME</label><input id="c-loc" value="Leesburg, VA"></div>
-    <div class="sr"><label>LATITUDE</label><input id="c-lat" type="number" value="39.1157" step="0.001"></div>
-    <div class="sr"><label>LONGITUDE</label><input id="c-lon" type="number" value="-77.5636" step="0.001"></div>
-    <div class="sr"><label>ADS-B RADIUS (NM)</label><input id="c-rad" type="number" value="50" min="10" max="150"></div>
-    <div class="sr"><label>NEWS RSS FEED URL</label><input id="c-rss" value="https://feeds.bbci.co.uk/news/world/rss.xml"></div>
+    <div class="sr"><label>Location Name</label><input id="c-loc" value="Leesburg, VA"></div>
+    <div class="sr"><label>Latitude</label><input id="c-lat" type="number" value="39.1157" step="0.001"></div>
+    <div class="sr"><label>Longitude</label><input id="c-lon" type="number" value="-77.5636" step="0.001"></div>
+    <div class="sr"><label>ADS-B Radius (NM)</label><input id="c-rad" type="number" value="50" min="10" max="150"></div>
+    <div class="sr"><label>News RSS Feed URL</label><input id="c-rss" value="https://feeds.bbci.co.uk/news/world/rss.xml"></div>
     <div class="mbtns">
-      <button class="btn" onclick="closeCfg()">CANCEL</button>
-      <button class="btn p" onclick="saveCfg()">APPLY</button>
+      <button class="btn" onclick="closeCfg()">Cancel</button>
+      <button class="btn p" onclick="saveCfg()">Apply</button>
     </div>
   </div>
 </div>
 
 <script>
-let cfg = {
-  loc:'Leesburg, VA', lat:39.1157, lon:-77.5636,
-  radius:50, rss:'https://feeds.bbci.co.uk/news/world/rss.xml'
-};
+let cfg={loc:'Leesburg, VA',lat:39.1157,lon:-77.5636,radius:50,rss:'https://feeds.bbci.co.uk/news/world/rss.xml'};
 
-const STYLES = {
-  dark:     {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
+const STYLES={
+  dark:    {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
   satellite:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',ns:true},
-  terrain:  {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',ns:true},
-  topo:     {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',ns:true},
-  street:   {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
+  terrain: {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',ns:true},
+  topo:    {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',ns:true},
+  street:  {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
 };
 
-let map, baseLayer, acLayer, radarLayer, radiusCircle;
-let overlays = {radar:false, aircraft:true};
-let currentStyle = 'dark';
+let map, baseLayer, acLayer, radarLayer, issLayer, radiusCircle;
+let overlays={radar:false,aircraft:true,iss:false};
+let issInterval=null;
 
-// ── CLOCK ─────────────────────────────────────────────
+// ── CLOCK ──────────────────────────────────────────────
 function tick(){
-  const n=new Date(), p=v=>String(v).padStart(2,'0');
+  const n=new Date(),p=v=>String(v).padStart(2,'0');
   document.getElementById('clock').textContent=`${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} Z`;
   document.getElementById('dl-date').textContent=n.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}).toUpperCase();
 }
-setInterval(tick,1000); tick();
+setInterval(tick,1000);tick();
 
 // ── MAP ────────────────────────────────────────────────
 function initMap(){
   if(map) map.remove();
-  const s=STYLES[currentStyle];
+  const s=STYLES['dark'];
   map=L.map('map',{center:[cfg.lat,cfg.lon],zoom:8,zoomControl:true,attributionControl:false});
-  baseLayer=L.tileLayer(s.url,s.ns?{maxZoom:19}:{maxZoom:19,subdomains:'abcd'}).addTo(map);
-  L.circleMarker([cfg.lat,cfg.lon],{radius:8,color:'#00e87a',fillColor:'#00e87a',fillOpacity:.9})
-   .bindTooltip(cfg.loc.toUpperCase()).addTo(map);
-  radiusCircle=L.circle([cfg.lat,cfg.lon],{
-    radius:cfg.radius*1852,color:'#00c8f0',fillColor:'#00c8f0',
-    fillOpacity:.04,weight:1,dashArray:'4 6'
-  }).addTo(map);
+  baseLayer=L.tileLayer(s.url,{maxZoom:19,subdomains:'abcd'}).addTo(map);
+  L.circleMarker([cfg.lat,cfg.lon],{radius:9,color:'#22c55e',fillColor:'#22c55e',fillOpacity:.9,weight:2})
+   .bindTooltip(`<b>${cfg.loc}</b>`,{permanent:false}).addTo(map);
+  radiusCircle=L.circle([cfg.lat,cfg.lon],{radius:cfg.radius*1852,color:'#29b8d8',fillColor:'#29b8d8',fillOpacity:.03,weight:1,dashArray:'5 7'}).addTo(map);
   acLayer=L.layerGroup().addTo(map);
-  if(overlays.radar) initRadar();
+  issLayer=L.layerGroup();
 }
 
 function setStyle(name){
-  currentStyle=name;
   ['dark','sat','terrain','topo','street'].forEach(n=>document.getElementById('btn-'+n)?.classList.remove('active'));
   document.getElementById('btn-'+name.replace('satellite','sat'))?.classList.add('active');
   const s=STYLES[name];
   if(baseLayer) map.removeLayer(baseLayer);
   baseLayer=L.tileLayer(s.url,s.ns?{maxZoom:19}:{maxZoom:19,subdomains:'abcd'}).addTo(map);
   baseLayer.bringToBack();
-  if(radarLayer) radarLayer.bringToFront();
-  if(acLayer) acLayer.bringToFront();
 }
 
 function setRadius(nm){
   cfg.radius=nm;
   document.getElementById('sb-r').textContent=nm+' NM';
-  if(radiusCircle){map.removeLayer(radiusCircle);}
-  radiusCircle=L.circle([cfg.lat,cfg.lon],{
-    radius:nm*1852,color:'#00c8f0',fillColor:'#00c8f0',
-    fillOpacity:.04,weight:1,dashArray:'4 6'
-  }).addTo(map);
-  document.querySelectorAll('#ctrl-body .ctrl-btns .tb').forEach(b=>{
-    if(['25 NM','50 NM','100 NM','150 NM'].includes(b.textContent))
-      b.classList.toggle('active', b.textContent===nm+' NM');
-  });
+  document.querySelectorAll('#ring-btns .tb').forEach(b=>b.classList.toggle('active',b.textContent===nm+' NM'));
+  if(radiusCircle) map.removeLayer(radiusCircle);
+  radiusCircle=L.circle([cfg.lat,cfg.lon],{radius:nm*1852,color:'#29b8d8',fillColor:'#29b8d8',fillOpacity:.03,weight:1,dashArray:'5 7'}).addTo(map);
   fetchADSB();
 }
 
 function toggleOverlay(name){
   overlays[name]=!overlays[name];
-  document.getElementById('btn-'+name).classList.toggle('ov-on',overlays[name]);
-  if(name==='radar'){
-    if(overlays.radar) initRadar();
-    else{if(radarLayer){map.removeLayer(radarLayer);radarLayer=null;}}
-  }
-  if(name==='aircraft'){
-    overlays.aircraft?acLayer.addTo(map):map.removeLayer(acLayer);
+  const btn=document.getElementById('btn-'+name);
+  const cls=name==='iss'?'ov-iss':'ov-on';
+  btn.classList.toggle(cls,overlays[name]);
+  if(name==='radar'){overlays.radar?initRadar():(radarLayer&&(map.removeLayer(radarLayer),radarLayer=null));}
+  if(name==='aircraft'){overlays.aircraft?acLayer.addTo(map):map.removeLayer(acLayer);}
+  if(name==='iss'){
+    if(overlays.iss){issLayer.addTo(map);fetchISS();issInterval=setInterval(fetchISS,10000);}
+    else{map.removeLayer(issLayer);issLayer.clearLayers();clearInterval(issInterval);}
   }
 }
 
-// ── RADAR (RainViewer) — zoom-capped to prevent tile errors ──
+// ── RADAR — maxNativeZoom prevents tile errors at deep zoom ──
 async function initRadar(){
   try{
     const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');
@@ -341,12 +338,28 @@ async function initRadar(){
     if(radarLayer) map.removeLayer(radarLayer);
     radarLayer=L.tileLayer(
       `https://tilecache.rainviewer.com${latest.path}/512/{z}/{x}/{y}/4/1_1.png`,
-      {opacity:.55, minZoom:1, maxZoom:10, zIndex:10}  // cap at z10 — RainViewer limit
+      {opacity:.55,minZoom:1,maxZoom:19,maxNativeZoom:9,zIndex:10}
     ).addTo(map);
   }catch(e){console.warn('Radar:',e);}
 }
 
-// ── ADS-B (allorigins proxy) ───────────────────────────
+// ── ISS ────────────────────────────────────────────────
+async function fetchISS(){
+  try{
+    const r=await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+    const d=await r.json();
+    issLayer.clearLayers();
+    const ic=L.divIcon({
+      html:`<div title="ISS" style="font-size:18px;line-height:1;filter:drop-shadow(0 0 4px #f59e0b)">🛰️</div>`,
+      iconSize:[20,20],iconAnchor:[10,10],className:''
+    });
+    L.marker([d.latitude,d.longitude],{icon:ic})
+     .bindTooltip(`<b style="color:#f59e0b">ISS</b><br>ALT: ${Math.round(d.altitude)} km<br>SPD: ${Math.round(d.velocity).toLocaleString()} km/h<br>${d.latitude.toFixed(2)}°, ${d.longitude.toFixed(2)}°`,{direction:'top'})
+     .addTo(issLayer);
+  }catch(e){console.warn('ISS:',e);}
+}
+
+// ── ADS-B ──────────────────────────────────────────────
 async function fetchADSB(){
   const deg=cfg.radius/60;
   const osUrl=`https://opensky-network.org/api/states/all?lamin=${(cfg.lat-deg).toFixed(4)}&lomin=${(cfg.lon-deg).toFixed(4)}&lamax=${(cfg.lat+deg).toFixed(4)}&lomax=${(cfg.lon+deg).toFixed(4)}`;
@@ -354,57 +367,52 @@ async function fetchADSB(){
     const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(osUrl)}`,{signal:AbortSignal.timeout(15000)});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const d=JSON.parse((await r.json()).contents);
-    const ac=(d.states||[])
-      .filter(s=>s[5]&&s[6]&&!s[8])
+    const ac=(d.states||[]).filter(s=>s[5]&&s[6]&&!s[8])
       .map(s=>({icao:s[0],cs:(s[1]||'').trim()||s[0],lat:s[6],lon:s[5],
-        alt:s[7]?Math.round(s[7]*3.281):null,spd:s[9]?Math.round(s[9]*1.944):null,
-        hdg:s[10]||0,ctry:s[2]}))
+        alt:s[7]?Math.round(s[7]*3.281):null,spd:s[9]?Math.round(s[9]*1.944):null,hdg:s[10]||0,ctry:s[2]}))
       .sort((a,b)=>(b.alt||0)-(a.alt||0));
-
     acLayer.clearLayers();
     if(overlays.aircraft){
       ac.forEach(a=>{
-        const ic=L.divIcon({
-          html:`<div style="color:#00e87a;font-size:13px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 5px #00e87a88">▲</div>`,
-          iconSize:[13,13],className:''
-        });
+        const ic=L.divIcon({html:`<div style="color:#22c55e;font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px #22c55e99">▲</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
-         .bindTooltip(`<b style="color:#00e87a;font-family:monospace">${a.cs}</b><br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}`,{direction:'top'})
+         .bindTooltip(`<b style="color:#22c55e;font-family:monospace">${a.cs}</b><br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}`,{direction:'top'})
          .addTo(acLayer);
       });
     }
     document.getElementById('ac-count').textContent=`${ac.length} CONTACTS`;
     document.getElementById('adsb-list').innerHTML=ac.length
       ?ac.slice(0,40).map(a=>`<div class="aci"><div class="ac-cs">${a.cs}</div><div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':'—'} | ${a.spd?a.spd+' KTS':'—'} | ${a.ctry}</div></div>`).join('')
-      :'<div class="msg">NO CONTACTS IN RANGE</div>';
-    dot('ab-dot',true); document.getElementById('sb-ab').textContent=ftm();
+      :'<div class="msg">No airborne contacts in range</div>';
+    dot('ab-dot',true);document.getElementById('sb-ab').textContent=ftm();
   }catch(e){
-    document.getElementById('adsb-list').innerHTML=`<div class="err">ADS-B UNAVAILABLE<br><small style="color:var(--dim)">${e.message}</small></div>`;
+    document.getElementById('adsb-list').innerHTML=`<div class="err">ADS-B UNAVAILABLE<br><small style="color:var(--muted)">${e.message}</small></div>`;
     document.getElementById('ac-count').textContent='-- CONTACTS';
     dot('ab-dot',false);
   }
 }
-function refreshADSB(){document.getElementById('adsb-list').innerHTML='<div class="msg">ACQUIRING…</div>';fetchADSB();}
+function refreshADSB(){document.getElementById('adsb-list').innerHTML='<div class="msg">Acquiring…</div>';fetchADSB();}
 
 // ── WEATHER ────────────────────────────────────────────
 async function fetchWX(){
   try{
     const r=await fetch(`https://wttr.in/${encodeURIComponent(cfg.loc)}?format=j1`);
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d=await r.json(), c=d.current_condition[0];
+    const d=await r.json(),c=d.current_condition[0];
     document.getElementById('wx-body').innerHTML=`
       <div id="wx-temp">${c.temp_F}°F</div>
       <div id="wx-desc">${c.weatherDesc[0].value}</div>
       <div id="wx-grid">
         ${wi('HUMIDITY',c.humidity+'%')}${wi('FEELS LIKE',c.FeelsLikeF+'°F')}
-        ${wi('WIND',c.windspeedMiles+' MPH '+c.winddir16Point)}${wi('VISIBILITY',c.visibility+' MI')}
-        ${wi('PRESSURE',c.pressure+' MB')}${wi('CLOUD COVER',c.cloudcover+'%')}
+        ${wi('WIND',c.windspeedMiles+'mph '+c.winddir16Point)}${wi('VISIBILITY',c.visibility+' mi')}
+        ${wi('PRESSURE',c.pressure+' mb')}${wi('CLOUD COVER',c.cloudcover+'%')}
       </div>`;
     document.getElementById('fc').innerHTML=d.weather.slice(0,3).map(w=>{
       const dn=new Date(w.date).toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
-      return`<div class="fcd"><span>${dn}</span><span style="color:var(--dim);font-size:10px">${w.hourly[4]?.weatherDesc[0]?.value||''}</span><span class="fct">${w.mintempF}°/${w.maxtempF}°F</span></div>`;
+      const desc=w.hourly[4]?.weatherDesc[0]?.value||'';
+      return`<div class="fcd"><span class="day">${dn}</span><span class="cond">${desc}</span><span class="temps">${w.mintempF}° / ${w.maxtempF}°</span></div>`;
     }).join('');
-    dot('wx-dot',true); document.getElementById('sb-wx').textContent=ftm();
+    dot('wx-dot',true);document.getElementById('sb-wx').textContent=ftm();
   }catch(e){
     document.getElementById('wx-body').innerHTML=`<div class="err">WX UNAVAILABLE<br><small>${e.message}</small></div>`;
     dot('wx-dot',false);
@@ -412,37 +420,61 @@ async function fetchWX(){
 }
 function wi(l,v){return`<div class="wxi"><div class="l">${l}</div><div class="v">${v}</div></div>`}
 
+// ── SPARKLINE ──────────────────────────────────────────
+function spark(prices,w=64,h=22){
+  if(!prices||prices.length<2) return '';
+  const clean=prices.filter(p=>p!=null&&!isNaN(p));
+  if(clean.length<2) return '';
+  const mn=Math.min(...clean),mx=Math.max(...clean),rng=mx-mn||1;
+  const pts=clean.map((p,i)=>`${(i/(clean.length-1)*w).toFixed(1)},${(h-(p-mn)/rng*h).toFixed(1)}`).join(' ');
+  const col=clean[clean.length-1]>=clean[0]?'#22c55e':'#ef4444';
+  return`<svg width="${w}" height="${h}" style="vertical-align:middle"><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+
 // ── MARKETS ────────────────────────────────────────────
 async function fetchMarkets(){
-  // Bitcoin — Coinbase (direct CORS)
+  // BTC via CoinGecko (CORS-friendly, includes history for sparkline)
   try{
-    const r=await fetch('https://api.coinbase.com/v2/prices/BTC-USD/spot');
+    const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7&interval=daily');
     const d=await r.json();
-    const p=parseFloat(d.data.amount);
-    document.getElementById('t-btc').textContent='$'+p.toLocaleString('en-US',{maximumFractionDigits:0});
-    document.getElementById('t-btc-c').innerHTML='<span style="color:var(--dim)">SPOT</span>';
+    const prices=d.prices.map(p=>p[1]);
+    const cur=prices[prices.length-1];
+    const prev=prices[prices.length-2]||cur;
+    const pct=((cur-prev)/prev*100);
+    document.getElementById('t-btc').textContent='$'+Math.round(cur).toLocaleString();
+    document.getElementById('t-btc-c').innerHTML=chgHtml(pct);
+    document.getElementById('spark-btc').innerHTML=spark(prices);
   }catch(e){document.getElementById('t-btc').textContent='--';}
 
-  // S&P + Brent — Yahoo Finance via allorigins
-  try{
-    const yUrl='https://query1.finance.yahoo.com/v7/finance/quote?symbols=%5EGSPC,BZ%3DF';
-    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(yUrl)}`);
-    const d=JSON.parse((await r.json()).contents);
-    (d.quoteResponse?.result||[]).forEach(q=>{
-      const up=q.regularMarketChangePercent>=0;
-      const arrow=up?'▲':'▼'; const cls=up?'up':'dn';
-      const chg=`<span class="${cls}">${arrow} ${Math.abs(q.regularMarketChangePercent).toFixed(2)}%</span>`;
-      if(q.symbol==='^GSPC'){
-        document.getElementById('t-sp').textContent=q.regularMarketPrice.toLocaleString('en-US',{maximumFractionDigits:2});
-        document.getElementById('t-sp-c').innerHTML=chg;
-      }
-      if(q.symbol==='BZ=F'){
-        document.getElementById('t-brent').textContent='$'+q.regularMarketPrice.toFixed(2);
-        document.getElementById('t-brent-c').innerHTML=chg;
-      }
-    });
-  }catch(e){document.getElementById('t-sp').textContent='--';document.getElementById('t-brent').textContent='--';}
-  dot('mkt-dot',true); document.getElementById('sb-mkt').textContent=ftm();
+  // S&P 500 + Brent via corsproxy.io → Yahoo Finance v8 chart
+  for(const [sym,elP,elC,elS] of [
+    ['^GSPC','t-sp','t-sp-c','spark-sp'],
+    ['BZ=F','t-brent','t-brent-c','spark-brent']
+  ]){
+    try{
+      const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=7d&interval=1d`;
+      const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
+      if(!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d=await r.json();
+      const res=d.chart?.result?.[0];
+      if(!res) throw new Error('No data');
+      const closes=res.indicators?.quote?.[0]?.close||[];
+      const cur=res.meta?.regularMarketPrice||closes[closes.length-1];
+      const prev=res.meta?.previousClose||closes[closes.length-2]||cur;
+      const pct=((cur-prev)/prev*100);
+      const fmt=sym==='BZ=F'?('$'+cur.toFixed(2)):cur.toLocaleString('en-US',{maximumFractionDigits:2});
+      document.getElementById(elP).textContent=fmt;
+      document.getElementById(elC).innerHTML=chgHtml(pct);
+      document.getElementById(elS).innerHTML=spark(closes);
+    }catch(e){document.getElementById(elP).textContent='--';}
+  }
+  dot('mkt-dot',true);document.getElementById('sb-mkt').textContent=ftm();
+}
+function chgHtml(pct){
+  if(isNaN(pct)) return'<span class="flat">--</span>';
+  const cls=pct>0?'up':pct<0?'dn':'flat';
+  const arrow=pct>0?'▲':pct<0?'▼':'–';
+  return`<span class="${cls}">${arrow}${Math.abs(pct).toFixed(2)}%</span>`;
 }
 
 // ── NEWS ───────────────────────────────────────────────
@@ -451,32 +483,32 @@ async function fetchNews(){
     const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cfg.rss)}`);
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const xml=new DOMParser().parseFromString((await r.json()).contents,'text/xml');
-    const items=[...xml.querySelectorAll('item')].slice(0,30);
+    const items=[...xml.querySelectorAll('item')].slice(0,5);
     if(!items.length) throw new Error('Empty feed');
     const src=xml.querySelector('channel > title')?.textContent||'FEED';
     document.getElementById('news-list').innerHTML=items.map(i=>{
       const t=i.querySelector('title')?.textContent||'';
       const l=i.querySelector('link')?.textContent||i.querySelector('guid')?.textContent||'#';
       const p=i.querySelector('pubDate')?.textContent;
-      return`<div class="ni" onclick="window.open('${l}','_blank')"><div class="nt">${t}</div><div class="nm">${p?ago(new Date(p)):''} // ${src.toUpperCase()}</div></div>`;
+      return`<div class="ni" onclick="window.open('${l}','_blank')"><div class="nt">${t}</div><div class="nm">${p?ago(new Date(p)):''} · ${src}</div></div>`;
     }).join('');
-    dot('nw-dot',true); document.getElementById('sb-nw').textContent=ftm();
+    dot('nw-dot',true);document.getElementById('sb-nw').textContent=ftm();
   }catch(e){
     document.getElementById('news-list').innerHTML=`<div class="err">FEED UNAVAILABLE<br><small>${e.message}</small></div>`;
     dot('nw-dot',false);
   }
 }
 
-// ── TRENDING (Reddit) ──────────────────────────────────
+// ── TRENDING ───────────────────────────────────────────
 async function fetchTrending(){
   try{
     const r=await fetch('https://www.reddit.com/r/news/hot.json?limit=12&raw_json=1',{headers:{Accept:'application/json'}});
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     const posts=(await r.json()).data.children.map(c=>c.data).filter(p=>!p.stickied);
-    document.getElementById('trend-list').innerHTML=posts.slice(0,10).map(p=>`
+    document.getElementById('trend-list').innerHTML=posts.slice(0,8).map(p=>`
       <div class="tri" onclick="window.open('https://reddit.com${p.permalink}','_blank')">
         <div class="tr-t">${p.title}</div>
-        <div class="tr-m"><span class="hot">▲${p.score.toLocaleString()}</span> // ${ago(new Date(p.created_utc*1000))}</div>
+        <div class="tr-m"><span class="hot">▲ ${p.score.toLocaleString()}</span> · ${ago(new Date(p.created_utc*1000))}</div>
       </div>`).join('');
     dot('tr-dot',true);
   }catch(e){
@@ -486,8 +518,8 @@ async function fetchTrending(){
 }
 
 // ── UTILS ──────────────────────────────────────────────
-function ago(d){const m=Math.floor((Date.now()-d)/60000);if(m<1)return'NOW';if(m<60)return m+'M';if(m<1440)return Math.floor(m/60)+'H';return Math.floor(m/1440)+'D';}
-function ftm(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}
+function ago(d){const m=Math.floor((Date.now()-d)/60000);if(m<1)return'now';if(m<60)return m+'m';if(m<1440)return Math.floor(m/60)+'h';return Math.floor(m/1440)+'d';}
+function ftm(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});}
 function dot(id,ok){const el=document.getElementById(id);if(!el)return;el.classList.toggle('off',!ok);el.style.animation=ok?'blink 2s infinite':'none';}
 
 // ── CONFIG ─────────────────────────────────────────────
@@ -508,18 +540,18 @@ function saveCfg(){
   cfg.rss=document.getElementById('c-rss').value;
   document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
   document.getElementById('sb-r').textContent=cfg.radius+' NM';
-  closeCfg(); initMap(); fetchWX(); fetchADSB(); fetchNews(); fetchTrending(); fetchMarkets();
+  closeCfg();initMap();fetchWX();fetchADSB();fetchNews();fetchTrending();fetchMarkets();
 }
 
 // ── BOOT ───────────────────────────────────────────────
 document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
 initMap();
-fetchWX(); fetchADSB(); fetchNews(); fetchTrending(); fetchMarkets();
+fetchWX();fetchADSB();fetchNews();fetchTrending();fetchMarkets();
 setInterval(fetchADSB,30000);
 setInterval(fetchWX,600000);
 setInterval(fetchNews,300000);
 setInterval(fetchTrending,300000);
-setInterval(fetchMarkets,60000);
+setInterval(fetchMarkets,120000);
 </script>
 </body>
 </html>
