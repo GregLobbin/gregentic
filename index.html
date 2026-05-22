@@ -149,6 +149,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
     <div class="sh"><span>MAP CONTROLS</span></div>
     <div id="ctrl-body">
       <div class="ctrl-sec">
+        <div class="ctrl-lbl">Temporal Scrub (NASA Layers) <span id="temp-lbl" style="float:right;color:var(--accent)">-2 DAYS</span></div>
+        <input type="range" id="time-slider" min="2" max="14" value="2" step="1" style="width:100%;accent-color:var(--accent);margin-top:4px" onchange="updateTemporal(this.value)">
+      </div>
+      <div class="ctrl-sec">
         <div class="ctrl-lbl">Base Layer</div>
         <div class="ctrl-row">
           <button class="tb active" id="btn-dark"     onclick="setStyle('dark')">DARK</button>
@@ -215,11 +219,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
 <script>
 const WORKER_URL='https://gregentic-data.lobbingr.workers.dev';
 let cfg={loc:'Leesburg, VA',lat:39.1157,lon:-77.5636,radius:50,rss:'https://feeds.bbci.co.uk/news/world/rss.xml'};
+let temporalOffset=2;
 
 const WMO={0:'Clear Sky',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Fog',48:'Icy Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',80:'Light Showers',81:'Showers',82:'Heavy Showers',95:'Thunderstorm',96:'Thunderstorm/Hail',99:'Severe Thunderstorm'};
 function wmoDesc(c){return WMO[c]||'Unknown';}
 function degCompass(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
-function gibsDate(n=2){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString().slice(0,10);}
+function gibsDate(){const d=new Date();d.setDate(d.getDate()-temporalOffset);return d.toISOString().slice(0,10);}
 
 const STYLES={
   dark:    {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
@@ -289,6 +294,17 @@ function toggleOverlay(name){
     if(overlays.iss){issLayer.addTo(map);fetchISS();issInterval=setInterval(fetchISS,10000);}
     else{map.removeLayer(issLayer);issLayer.clearLayers();clearInterval(issInterval);}
   }
+}
+
+function updateTemporal(daysAgo){
+  temporalOffset=parseInt(daysAgo);
+  document.getElementById('temp-lbl').textContent=`-${temporalOffset} DAYS`;
+  STYLES.modis.url=`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${gibsDate()}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+  STYLES.viirs.url=`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${gibsDate()}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+  const active=document.querySelector('#ctrl-body .tb.active')?.id;
+  if(active==='btn-modis') setStyle('modis');
+  if(active==='btn-viirs') setStyle('viirs');
+  if(overlays.events){toggleOverlay('events');toggleOverlay('events');}
 }
 
 // ── RADAR ──────────────────────────────────────────────
@@ -448,9 +464,9 @@ function chgHtml(pct){
 // ── NEWS ───────────────────────────────────────────────
 async function fetchNews(){
   try{
-    const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cfg.rss)}`);
-    if(!r.ok) throw new Error(`HTTP ${r.status}`);
-    const xml=new DOMParser().parseFromString((await r.json()).contents,'text/xml');
+    const r=await fetch(`${WORKER_URL}/news?url=${encodeURIComponent(cfg.rss)}`);
+    if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
+    const xml=new DOMParser().parseFromString(await r.text(),'text/xml');
     const items=[...xml.querySelectorAll('item')].slice(0,5);
     if(!items.length) throw new Error('Empty feed');
     const src=xml.querySelector('channel > title')?.textContent||'FEED';
