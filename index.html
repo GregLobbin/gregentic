@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GREGENTIC // COP v0.7</title>
+<title>GREGENTIC // COP v0.8</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -110,7 +110,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
 <body>
 
 <div id="hdr">
-  <div id="logo">GREG<em>ENTIC</em><span class="ver">v0.7</span>
+  <div id="logo">GREG<em>ENTIC</em><span class="ver">v0.8</span>
     <span style="color:var(--border);font-size:12px;margin-left:10px">// COMMON OPERATING PICTURE</span>
   </div>
   <div id="clock">--:--:-- Z</div>
@@ -208,7 +208,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
   <div>MKT <span id="sb-mkt">--</span></div>
   <div>FEED <span id="sb-nw">--</span></div>
   <div>RADIUS <span id="sb-r">50 NM</span></div>
-  <div class="sb-brand">GREGENTIC.COM // v0.7</div>
+  <div class="sb-brand">GREGENTIC.COM // v0.8</div>
 </div>
 
 <div id="modal">
@@ -242,8 +242,8 @@ const STYLES={
   dark:     {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'},
   satellite:{url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',ns:true},
   sentinel: {url:'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2023_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg',ns:true,maxNative:15},
-  modis:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible/{z}/{y}/{x}.jpg`,ns:true,maxNative:8},
-  viirs:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible/{z}/{y}/{x}.jpg`,ns:true,maxNative:8},
+  modis:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,ns:true,maxNative:9},
+  viirs:    {url:`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${gibsDate(2)}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,ns:true,maxNative:9},
   terrain:  {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',ns:true},
   topo:     {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',ns:true},
   street:   {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
@@ -308,7 +308,7 @@ function toggleOverlay(name){
 function initFires(){
   if(firesLayer) map.removeLayer(firesLayer);
   firesLayer=L.tileLayer(
-    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/${gibsDate(1)}/GoogleMapsCompatible/{z}/{y}/{x}.png`,
+    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/${gibsDate(1)}/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png`,
     {opacity:.8,maxNativeZoom:8,maxZoom:19,zIndex:11}
   ).addTo(map);
 }
@@ -343,8 +343,8 @@ async function initRadar(){
     const latest=d.radar.past[d.radar.past.length-1];
     if(radarLayer) map.removeLayer(radarLayer);
     radarLayer=L.tileLayer(
-      `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/4/1_1.png`,
-      {opacity:.55,maxZoom:19,maxNativeZoom:8,tileSize:256,zIndex:10}
+      `https://tilecache.rainviewer.com${latest.path}/256/{z}/{x}/{y}/2/1_1.png`,
+      {opacity:.55,maxZoom:19,maxNativeZoom:7,tileSize:256,zIndex:10}
     ).addTo(map);
   }catch(e){console.warn('Radar:',e);}
 }
