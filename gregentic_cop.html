@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GREGENTIC // COP</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080d13;--bg2:#0d1520;--bg3:#111d2a;
+  --border:#1a2d42;--accent:#00c8f0;--accent2:#00e87a;
+  --warn:#ff9a00;--danger:#ff3a3a;
+  --text:#b8cedd;--dim:#4a6a8a;
+  --font:'Courier New',monospace
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+#hdr{background:var(--bg2);border-bottom:2px solid var(--accent);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px}
+#logo{color:var(--accent);font-size:17px;font-weight:bold;letter-spacing:5px}
+#logo span{color:var(--accent2)}
+#clock{font-size:24px;color:var(--accent);letter-spacing:3px;min-width:180px;text-align:center}
+#hdr-right{display:flex;align-items:center;gap:10px}
+#date-line{font-size:10px;color:var(--dim);letter-spacing:1px;text-align:right}
+.cfg-btn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:10px;padding:4px 10px;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.cfg-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* MAIN GRID */
+#grid{display:grid;grid-template-columns:270px 1fr 290px;gap:1px;background:var(--border);flex:1;overflow:hidden;min-height:0}
+.panel{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.ph{background:var(--bg2);padding:5px 10px;font-size:9px;letter-spacing:2px;color:var(--dim);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* WEATHER */
+#wx-body{padding:14px;text-align:center;flex-shrink:0}
+#wx-temp{font-size:52px;color:var(--accent);line-height:1}
+#wx-desc{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin:4px 0 10px}
+#wx-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.wxi{background:var(--bg2);border:1px solid var(--border);padding:7px;text-align:center}
+.wxi .l{font-size:8px;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
+.wxi .v{font-size:14px;color:var(--text);margin-top:2px}
+#fc{padding:0 14px 14px;flex-shrink:0}
+.fcd{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px}
+.fcd:last-child{border:none}
+.fct{color:var(--accent)}
+.msg{color:var(--dim);font-size:10px;padding:14px;text-align:center}
+.err{color:var(--danger);font-size:10px;padding:14px;text-align:center}
+
+/* MAP */
+#map-wrap{flex:1;position:relative;min-height:0}
+#map{position:absolute;inset:0}
+
+/* RIGHT PANEL */
+#right{display:flex;flex-direction:column;min-height:0}
+#adsb-list{flex:0 0 42%;overflow-y:auto;border-bottom:1px solid var(--border)}
+#news-list{flex:1;overflow-y:auto;min-height:0}
+.aci{padding:7px 10px;border-bottom:1px solid var(--border);font-size:10px}
+.aci:hover{background:var(--bg2)}
+.ac-cs{color:var(--accent2);font-size:11px;letter-spacing:2px}
+.ac-d{color:var(--dim);margin-top:2px;font-size:9px}
+.ni{padding:9px 10px;border-bottom:1px solid var(--border);cursor:pointer}
+.ni:hover{background:var(--bg2)}
+.nt{font-size:10px;color:var(--text);line-height:1.4;margin-bottom:3px}
+.nm{font-size:8px;color:var(--dim);letter-spacing:1px}
+
+/* STATUS BAR */
+#sb{background:var(--bg2);border-top:1px solid var(--border);padding:3px 14px;display:flex;gap:20px;font-size:8px;color:var(--dim);letter-spacing:1px;flex-shrink:0;align-items:center}
+#sb span{color:var(--accent)}
+#sb .brand{margin-left:auto;color:var(--border)}
+
+/* MODAL */
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;align-items:center;justify-content:center}
+#modal.on{display:flex}
+#mbox{background:var(--bg2);border:1px solid var(--accent);padding:22px;width:380px}
+#mbox h2{color:var(--accent);font-size:11px;letter-spacing:3px;margin-bottom:14px}
+.sr{margin-bottom:10px}
+.sr label{display:block;font-size:9px;color:var(--dim);letter-spacing:1px;margin-bottom:3px}
+.sr input,.sr select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:11px;padding:5px 7px}
+.sr input:focus{outline:none;border-color:var(--accent)}
+.mbtns{display:flex;gap:8px;margin-top:14px}
+.btn{flex:1;background:none;border:1px solid var(--border);color:var(--text);font-family:var(--font);font-size:9px;padding:7px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}
+.btn.p{border-color:var(--accent);color:var(--accent)}
+.btn:hover{background:var(--bg3)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div id="logo">GREG<span>ENTIC</span> <span style="color:var(--border);font-size:12px">// COMMON OPERATING PICTURE</span></div>
+  <div id="clock">--:--:-- Z</div>
+  <div id="hdr-right">
+    <div id="date-line">
+      <div id="dl-date">---</div>
+      <div id="dl-loc">LEESBURG, VA</div>
+    </div>
+    <button class="cfg-btn" onclick="openCfg()">⚙ CONFIG</button>
+  </div>
+</div>
+
+<div id="grid">
+
+  <!-- LEFT: Weather -->
+  <div class="panel">
+    <div class="ph"><span>METEOROLOGICAL</span><div class="dot"></div></div>
+    <div id="wx-body"><div class="msg">ACQUIRING…</div></div>
+    <div id="fc"></div>
+  </div>
+
+  <!-- CENTER: Map -->
+  <div class="panel">
+    <div class="ph">
+      <span>AIR PICTURE // ADS-B</span>
+      <span id="ac-count" style="color:var(--accent2)">-- CONTACTS</span>
+    </div>
+    <div id="map-wrap"><div id="map"></div></div>
+  </div>
+
+  <!-- RIGHT: ADS-B + News -->
+  <div class="panel" id="right">
+    <div class="ph"><span>CONTACTS</span><div class="dot"></div></div>
+    <div id="adsb-list"><div class="msg">ACQUIRING…</div></div>
+    <div class="ph"><span>INTELLIGENCE FEED</span><div class="dot"></div></div>
+    <div id="news-list"><div class="msg">ACQUIRING…</div></div>
+  </div>
+
+</div>
+
+<div id="sb">
+  <div>WX <span id="sb-wx">--</span></div>
+  <div>ADS-B <span id="sb-ab">--</span></div>
+  <div>FEED <span id="sb-nw">--</span></div>
+  <div>RADIUS <span id="sb-r">50 NM</span></div>
+  <div class="brand">GREGENTIC.COM // v0.1-MVP</div>
+</div>
+
+<!-- Config Modal -->
+<div id="modal">
+  <div id="mbox">
+    <h2>⚙ CONFIGURATION</h2>
+    <div class="sr"><label>LOCATION NAME</label><input id="c-loc" value="Leesburg, VA"></div>
+    <div class="sr"><label>LATITUDE</label><input id="c-lat" type="number" value="39.1157" step="0.001"></div>
+    <div class="sr"><label>LONGITUDE</label><input id="c-lon" type="number" value="-77.5636" step="0.001"></div>
+    <div class="sr"><label>ADS-B RADIUS (NM)</label><input id="c-rad" type="number" value="50" min="10" max="150"></div>
+    <div class="sr"><label>NEWS RSS FEED URL</label><input id="c-rss" value="https://feeds.bbci.co.uk/news/world/rss.xml"></div>
+    <div class="mbtns">
+      <button class="btn" onclick="closeCfg()">CANCEL</button>
+      <button class="btn p" onclick="saveCfg()">APPLY</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────
+let cfg = {
+  loc: 'Leesburg, VA', lat: 39.1157, lon: -77.5636,
+  radius: 50, rss: 'https://feeds.bbci.co.uk/news/world/rss.xml'
+};
+
+// ── CLOCK ────────────────────────────────────────────────
+function tick() {
+  const n = new Date();
+  const hh = String(n.getUTCHours()).padStart(2,'0');
+  const mm = String(n.getUTCMinutes()).padStart(2,'0');
+  const ss = String(n.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${hh}:${mm}:${ss} Z`;
+  document.getElementById('dl-date').textContent =
+    n.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'}).toUpperCase();
+}
+setInterval(tick, 1000); tick();
+
+// ── MAP ───────────────────────────────────────────────────
+let map, acLayer;
+function initMap() {
+  if (map) map.remove();
+  map = L.map('map', { center:[cfg.lat, cfg.lon], zoom:8, zoomControl:true, attributionControl:false });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
+  L.circleMarker([cfg.lat, cfg.lon],{radius:7,color:'#00e87a',fillColor:'#00e87a',fillOpacity:.9})
+   .bindTooltip(cfg.loc.toUpperCase(),{permanent:false}).addTo(map);
+  L.circle([cfg.lat, cfg.lon],{
+    radius: cfg.radius*1852, color:'#00c8f0',
+    fillColor:'#00c8f0', fillOpacity:.04, weight:1, dashArray:'4 6'
+  }).addTo(map);
+  acLayer = L.layerGroup().addTo(map);
+}
+
+// ── ADS-B ─────────────────────────────────────────────────
+async function fetchADSB() {
+  const deg = cfg.radius / 60;
+  const url = `https://opensky-network.org/api/states/all?lamin=${cfg.lat-deg}&lomin=${cfg.lon-deg}&lamax=${cfg.lat+deg}&lomax=${cfg.lon+deg}`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const raw = (d.states || []);
+    const ac = raw
+      .filter(s => s[5] && s[6] && !s[8])
+      .map(s => ({
+        icao: s[0], cs: (s[1]||'').trim()||s[0],
+        lat:s[6], lon:s[5],
+        alt: s[7] ? Math.round(s[7]*3.281) : null,
+        spd: s[9] ? Math.round(s[9]*1.944) : null,
+        hdg: s[10]||0, ctry:s[2]
+      }))
+      .sort((a,b)=>(b.alt||0)-(a.alt||0));
+
+    acLayer.clearLayers();
+    ac.forEach(a => {
+      const ic = L.divIcon({
+        html:`<div style="color:#00e87a;font-size:11px;transform:rotate(${a.hdg}deg);line-height:1">▲</div>`,
+        iconSize:[12,12],className:''
+      });
+      L.marker([a.lat,a.lon],{icon:ic})
+       .bindTooltip(`<b>${a.cs}</b><br>${a.alt?a.alt.toLocaleString()+' ft':'ALT N/A'}`)
+       .addTo(acLayer);
+    });
+
+    document.getElementById('ac-count').textContent = `${ac.length} CONTACTS`;
+    document.getElementById('adsb-list').innerHTML = ac.length
+      ? ac.slice(0,40).map(a=>`
+          <div class="aci">
+            <div class="ac-cs">${a.cs}</div>
+            <div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':' —'} &nbsp;|&nbsp; ${a.spd?a.spd+' KTS':' —'} &nbsp;|&nbsp; ${a.ctry}</div>
+          </div>`).join('')
+      : '<div class="msg">NO AIRBORNE CONTACTS IN RANGE</div>';
+    document.getElementById('sb-ab').textContent = fmtTime();
+  } catch(e) {
+    document.getElementById('adsb-list').innerHTML = `<div class="err">ADS-B UNAVAILABLE<br><small>${e.message}</small></div>`;
+    document.getElementById('ac-count').textContent = '-- CONTACTS';
+  }
+}
+
+// ── WEATHER ───────────────────────────────────────────────
+async function fetchWX() {
+  try {
+    const r = await fetch(`https://wttr.in/${encodeURIComponent(cfg.loc)}?format=j1`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    const c = d.current_condition[0];
+    document.getElementById('wx-body').innerHTML = `
+      <div style="font-size:50px;color:var(--accent);line-height:1">${c.temp_F}°F</div>
+      <div style="font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin:4px 0 10px">${c.weatherDesc[0].value}</div>
+      <div id="wx-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        ${wxItem('HUMIDITY',c.humidity+'%')}
+        ${wxItem('FEELS LIKE',c.FeelsLikeF+'°F')}
+        ${wxItem('WIND',c.windspeedMiles+' MPH '+c.winddir16Point)}
+        ${wxItem('VISIBILITY',c.visibility+' MI')}
+        ${wxItem('PRESSURE',c.pressure+' MB')}
+        ${wxItem('CLOUD COVER',c.cloudcover+'%')}
+      </div>`;
+    document.getElementById('fc').innerHTML =
+      d.weather.slice(0,3).map(w=>{
+        const dn = new Date(w.date).toLocaleDateString('en-US',{weekday:'short'}).toUpperCase();
+        const dsc = w.hourly[4]?.weatherDesc[0]?.value||'';
+        return `<div class="fcd"><span>${dn}</span><span style="color:var(--dim);font-size:9px">${dsc}</span><span class="fct">${w.mintempF}° / ${w.maxtempF}°F</span></div>`;
+      }).join('');
+    document.getElementById('sb-wx').textContent = fmtTime();
+  } catch(e) {
+    document.getElementById('wx-body').innerHTML = `<div class="err">WX UNAVAILABLE<br><small>${e.message}</small></div>`;
+  }
+}
+function wxItem(l,v){return `<div class="wxi"><div class="l">${l}</div><div class="v">${v}</div></div>`}
+
+// ── NEWS ──────────────────────────────────────────────────
+async function fetchNews() {
+  try {
+    const r = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(cfg.rss)}&count=25`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if (d.status !== 'ok') throw new Error('RSS parse error');
+    document.getElementById('news-list').innerHTML = (d.items||[]).map(i=>`
+      <div class="ni" onclick="window.open('${i.link}','_blank')">
+        <div class="nt">${i.title}</div>
+        <div class="nm">${ago(new Date(i.pubDate))} // ${d.feed?.title||'FEED'}</div>
+      </div>`).join('');
+    document.getElementById('sb-nw').textContent = fmtTime();
+  } catch(e) {
+    document.getElementById('news-list').innerHTML = `<div class="err">FEED UNAVAILABLE<br><small>${e.message}</small></div>`;
+  }
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function ago(d){
+  const m=Math.floor((Date.now()-d)/60000);
+  if(m<1)return'JUST NOW';
+  if(m<60)return`${m}M AGO`;
+  if(m<1440)return`${Math.floor(m/60)}H AGO`;
+  return`${Math.floor(m/1440)}D AGO`;
+}
+function fmtTime(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}
+
+// ── CONFIG MODAL ──────────────────────────────────────────
+function openCfg(){
+  document.getElementById('c-loc').value=cfg.loc;
+  document.getElementById('c-lat').value=cfg.lat;
+  document.getElementById('c-lon').value=cfg.lon;
+  document.getElementById('c-rad').value=cfg.radius;
+  document.getElementById('c-rss').value=cfg.rss;
+  document.getElementById('modal').classList.add('on');
+}
+function closeCfg(){document.getElementById('modal').classList.remove('on')}
+function saveCfg(){
+  cfg.loc=document.getElementById('c-loc').value;
+  cfg.lat=parseFloat(document.getElementById('c-lat').value);
+  cfg.lon=parseFloat(document.getElementById('c-lon').value);
+  cfg.radius=parseInt(document.getElementById('c-rad').value);
+  cfg.rss=document.getElementById('c-rss').value;
+  document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
+  document.getElementById('sb-r').textContent=cfg.radius+' NM';
+  closeCfg();
+  initMap();
+  fetchWX(); fetchADSB(); fetchNews();
+}
+
+// ── BOOT ──────────────────────────────────────────────────
+document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
+document.getElementById('sb-r').textContent=cfg.radius+' NM';
+initMap();
+fetchWX();
+fetchADSB();
+fetchNews();
+setInterval(fetchADSB, 30000);
+setInterval(fetchWX, 600000);
+setInterval(fetchNews, 300000);
+</script>
+</body>
+</html>
