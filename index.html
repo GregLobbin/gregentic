@@ -179,7 +179,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
         <div class="ctrl-row">
           <button class="tb ov-on" id="btn-aircraft" onclick="toggleOverlay('aircraft')">◉ AIRCRAFT</button>
           <button class="tb"       id="btn-radar"    onclick="toggleOverlay('radar')">◉ WX RADAR</button>
-          <button class="tb"       id="btn-fires"    onclick="toggleOverlay('fires')">◉ FIRES</button>
           <button class="tb"       id="btn-events"   onclick="toggleOverlay('events')">◉ EVENTS</button>
           <button class="tb"       id="btn-iss"      onclick="toggleOverlay('iss')">◉ ISS</button>
           <button class="tb"       onclick="refreshADSB()">↻ REFRESH</button>
@@ -249,8 +248,8 @@ const STYLES={
   street:   {url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
 };
 
-let map,baseLayer,acLayer,radarLayer,firesLayer,eventsLayer,issLayer,radiusCircle;
-let overlays={radar:false,aircraft:true,fires:false,events:false,iss:false};
+let map,baseLayer,acLayer,radarLayer,eventsLayer,issLayer,radiusCircle;
+let overlays={radar:false,aircraft:true,events:false,iss:false};
 let issInterval=null;
 
 function tick(){
@@ -268,7 +267,7 @@ function initMap(){
    .bindTooltip(cfg.loc).addTo(map);
   radiusCircle=L.circle([cfg.lat,cfg.lon],{radius:cfg.radius*1852,color:'#29b8d8',fillColor:'#29b8d8',fillOpacity:.03,weight:1,dashArray:'5 7'}).addTo(map);
   acLayer=L.layerGroup().addTo(map);
-  firesLayer=null; eventsLayer=null;
+  eventsLayer=null;
   issLayer=L.layerGroup();
 }
 
@@ -296,21 +295,11 @@ function toggleOverlay(name){
   document.getElementById('btn-'+name).classList.toggle(cls,overlays[name]);
   if(name==='radar'){overlays.radar?initRadar():(radarLayer&&(map.removeLayer(radarLayer),radarLayer=null));}
   if(name==='aircraft'){overlays.aircraft?acLayer.addTo(map):map.removeLayer(acLayer);}
-  if(name==='fires'){overlays.fires?initFires():(firesLayer&&(map.removeLayer(firesLayer),firesLayer=null));}
   if(name==='events'){overlays.events?fetchEvents():(eventsLayer&&(map.removeLayer(eventsLayer),eventsLayer=null));}
   if(name==='iss'){
     if(overlays.iss){issLayer.addTo(map);fetchISS();issInterval=setInterval(fetchISS,10000);}
     else{map.removeLayer(issLayer);issLayer.clearLayers();clearInterval(issInterval);}
   }
-}
-
-// VIIRS fire hotspots tile overlay
-function initFires(){
-  if(firesLayer) map.removeLayer(firesLayer);
-  firesLayer=L.tileLayer(
-    `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/${gibsDate(1)}/GoogleMapsCompatible_Level8/{z}/{y}/{x}.png`,
-    {opacity:.8,maxNativeZoom:8,maxZoom:19,zIndex:11}
-  ).addTo(map);
 }
 
 // NASA EONET natural events
