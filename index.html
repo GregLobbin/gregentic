@@ -530,7 +530,7 @@ function saveCfg(){
 document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
 initMap();
 fetchWX();fetchADSB();fetchNews();fetchTrending();fetchMarkets();
-setInterval(fetchADSB,300000); // 5 min — respects OpenSky anonymous rate limits
+setInterval(fetchADSB,30000);
 setInterval(fetchWX,600000);
 setInterval(fetchNews,300000);
 setInterval(fetchTrending,300000);
