@@ -299,6 +299,7 @@ let overlays={radar:false,aircraft:true,events:false,iss:false,aurora:false};
 let issInterval=null;
 const acHistory=new Map(); // icao → [{lat,lon}], capped at AC_HIST_MAX entries
 const AC_HIST_MAX=20;      // 20 × 30 s = ~10 min of trail per aircraft
+const routeCache=new Map(); // callsign → {orig,dest} | null (null = fetched, no route found)
 
 // ── CLOCK ──────────────────────────────────────────────
 function tick(){
@@ -497,6 +498,21 @@ async function fetchAurora(){
   }catch(e){console.warn('Aurora:',e);}
 }
 
+// ── Route lookup (adsbdb.com, cached per session) ─────
+async function fetchRoute(cs){
+  if(routeCache.has(cs)) return;       // already fetched or in-flight
+  routeCache.set(cs,null);             // mark in-flight — blocks duplicate fetches
+  try{
+    const r=await fetch(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(cs)}`,
+      {signal:AbortSignal.timeout(8000)});
+    if(!r.ok) return;
+    const d=await r.json();
+    const fr=d?.response?.flightroute;
+    if(fr?.origin?.icao_code&&fr?.destination?.icao_code)
+      routeCache.set(cs,{orig:fr.origin.icao_code,dest:fr.destination.icao_code});
+  }catch(e){}  // silently leave as null
+}
+
 // ── ADS-B (via Cloudflare Worker → adsb.lol) ──────────
 async function fetchADSB(){
   let lastErr;
@@ -516,6 +532,9 @@ async function fetchADSB(){
       spd:a.gs||null, hdg:a.track||0,
       type:a.t||'', mil:!!(a.dbFlags&&(a.dbFlags&1)), reg:a.r||''
     })).sort((a,b)=>(b.alt||0)-(a.alt||0));
+
+    // ── Background route lookups (fire-and-forget, cache guards duplicates) ──
+    ac.forEach(a=>{if(a.cs) fetchRoute(a.cs);});
 
     // ── Accumulate position history (skip if aircraft hasn't moved) ──
     ac.forEach(a=>{
@@ -546,9 +565,11 @@ async function fetchADSB(){
         }
 
         // ── Aircraft marker ──────────────────────────────
+        const route=routeCache.get(a.cs);
+        const routeLine=route?`<br><span style="color:var(--accent)">${route.orig} → ${route.dest}</span>`:'';
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
-         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
+         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
          .on('click',()=>window.open(`https://globe.adsbexchange.com/?icao=${a.icao}`,'_blank'))
          .addTo(acLayer);
       });
