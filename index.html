@@ -109,6 +109,42 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border)}
+/* ── Mobile layout (≤600px — phones only, iPad unaffected) ── */
+@media(max-width:600px){
+  /* Page scrolls vertically instead of clipping at 100vh */
+  body{height:auto;min-height:100vh;overflow-y:auto;overflow-x:hidden;}
+
+  /* Compress header */
+  #hdr{padding:6px 10px;gap:6px;}
+  #logo{font-size:14px;letter-spacing:2px;}
+  #logo span:not(.ver){display:none;}   /* hide // COMMON OPERATING PICTURE */
+  #clock{font-size:16px;letter-spacing:1px;}
+  #date-line{display:none;}             /* location shown in weather section */
+  #hdr-right{gap:6px;}
+
+  /* Single-column stacked grid; map column floated to top */
+  #grid{display:flex;flex-direction:column;overflow:visible;background:none;gap:0;}
+  #grid>.col:nth-child(1){order:2;}     /* left col (weather/markets/news) */
+  #grid>.col:nth-child(2){order:1;}     /* center col (map) — first on screen */
+  #grid>.col:nth-child(3){order:3;}     /* right col (controls/contacts/trending) */
+  .col{overflow:visible;height:auto;min-height:0;}
+
+  /* Map needs explicit height — no longer sized by flex parent */
+  #map-wrap{height:52vh;min-height:260px;flex:none;}
+
+  /* Cap scrollable lists so they don't render full-length in page flow */
+  #news-list{flex:none;max-height:260px;}
+  #adsb-list{flex:none;max-height:220px;}
+  #trend-list{flex:none;max-height:220px;}
+
+  /* Status bar: wrap to two rows, drop brand tag */
+  #sb{flex-wrap:wrap;padding:5px 10px;gap:4px 14px;font-size:9px;}
+  .sb-brand{display:none;}
+
+  /* Config modal: constrain to screen width */
+  #mbox{width:calc(100vw - 32px);max-width:420px;}
+}
+
 #ac-panel{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--accent);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:1001;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);font-family:var(--font)}
 #ac-panel.open{transform:translateY(0)}
 #acp-cs{font-size:20px;letter-spacing:3px;font-weight:bold;margin-bottom:3px}
