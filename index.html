@@ -145,10 +145,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
     <div id="map-hdr">
       <span class="label">AIR PICTURE // ADS-B</span>
       <span id="ac-count">-- CONTACTS</span>
-      <div style="display:flex;gap:6px">
-        <button class="hbtn" onclick="refreshADSB()" title="Refresh aircraft">↻ REFRESH</button>
-        <button class="hbtn" onclick="map.flyTo([cfg.lat,cfg.lon],8,{duration:1})" title="Return to home">⌂ HOME</button>
-      </div>
     </div>
     <div id="map-wrap"><div id="map"></div></div>
     <div id="temporal-bar">
@@ -271,6 +267,20 @@ function initMap(){
   acLayer=L.layerGroup().addTo(map);
   eventsLayer=null;
   issLayer=L.layerGroup();
+
+  // Custom map controls — Home and Refresh next to zoom buttons
+  const makeCtrl = (html, title, onClick) => L.Control.extend({
+    options:{position:'topleft'},
+    onAdd(m){
+      const b=L.DomUtil.create('a','leaflet-bar');
+      b.innerHTML=html; b.title=title;
+      b.style.cssText='display:flex;align-items:center;justify-content:center;width:30px;height:30px;font-size:16px;cursor:pointer;text-decoration:none;color:#333;background:#fff;';
+      L.DomEvent.on(b,'click',e=>{L.DomEvent.stopPropagation(e);L.DomEvent.preventDefault(e);onClick();});
+      return b;
+    }
+  });
+  new (makeCtrl('⌂','Return home',()=>map.flyTo([cfg.lat,cfg.lon],8,{duration:1})))().addTo(map);
+  new (makeCtrl('↻','Refresh ADS-B',()=>refreshADSB()))().addTo(map);
 }
 
 function setStyle(name){
@@ -477,9 +487,18 @@ function chgHtml(pct){
 // ── NEWS ───────────────────────────────────────────────
 async function fetchNews(){
   try{
-    const r=await fetch(`${WORKER_URL}/news?url=${encodeURIComponent(cfg.rss)}`);
-    if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
-    const xml=new DOMParser().parseFromString(await r.text(),'text/xml');
+    let text;
+    try{
+      const r=await fetch(`${WORKER_URL}/news?url=${encodeURIComponent(cfg.rss)}`);
+      if(r.ok) text=await r.text();
+      else throw new Error('Worker 404');
+    }catch(e){
+      // Fallback to allorigins
+      const r2=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(cfg.rss)}`);
+      if(!r2.ok) throw new Error(`HTTP ${r2.status}`);
+      text=(await r2.json()).contents;
+    }
+    const xml=new DOMParser().parseFromString(text,'text/xml');
     const items=[...xml.querySelectorAll('item')].slice(0,5);
     if(!items.length) throw new Error('Empty feed');
     const src=xml.querySelector('channel > title')?.textContent||'FEED';
