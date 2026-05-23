@@ -280,6 +280,7 @@ async function detectLocation(){
 const WMO={0:'Clear Sky',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',45:'Fog',48:'Icy Fog',51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',61:'Light Rain',63:'Rain',65:'Heavy Rain',71:'Light Snow',73:'Snow',75:'Heavy Snow',80:'Light Showers',81:'Showers',82:'Heavy Showers',95:'Thunderstorm',96:'Thunderstorm/Hail',99:'Severe Thunderstorm'};
 function wmoDesc(c){return WMO[c]||'Unknown';}
 function degCompass(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
+let temporalOffset=2; // days behind present; matches slider default (val=14 → 16-14=2)
 function gibsDate(){const d=new Date();d.setDate(d.getDate()-temporalOffset);return d.toISOString().slice(0,10);}
 
 const STYLES={
@@ -728,15 +729,22 @@ function saveCfg(){
 }
 
 // ── BOOT ───────────────────────────────────────────────
-loadPrefs();
+try{loadPrefs();}catch(e){console.warn('GREGENTIC: loadPrefs failed, using defaults',e);}
 document.getElementById('dl-loc').textContent=cfg.loc.toUpperCase();
 document.getElementById('sb-r').textContent=cfg.radius+' NM';
-initMap();
-// Apply saved style and overlays
-if(currentStyle!=='dark') setStyle(currentStyle);
-document.querySelectorAll('#ring-btns .tb').forEach(b=>b.classList.toggle('active',b.textContent===cfg.radius+' NM'));
-if(overlays.radar) initRadar();
-if(!overlays.aircraft) map.removeLayer(acLayer);
+try{
+  initMap();
+  // Apply saved style and overlays
+  if(currentStyle!=='dark') setStyle(currentStyle);
+  document.querySelectorAll('#ring-btns .tb').forEach(b=>b.classList.toggle('active',b.textContent===cfg.radius+' NM'));
+  if(overlays.radar) initRadar();
+  if(!overlays.aircraft) map.removeLayer(acLayer);
+}catch(e){
+  console.warn('GREGENTIC: map init error, retrying with defaults',e);
+  currentStyle='dark';cfg.lat=39.1157;cfg.lon=-77.5636;
+  try{initMap();}catch(e2){console.error('GREGENTIC: map unavailable',e2);}
+}
+// Feeds always start regardless of map state
 fetchWX();fetchADSB();fetchNews();fetchTrending();fetchMarkets();
 setInterval(fetchADSB,30000);
 setInterval(fetchWX,600000);
