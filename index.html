@@ -109,6 +109,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border)}
+#ac-panel{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:2px solid var(--accent);padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));z-index:1001;transform:translateY(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);font-family:var(--font)}
+#ac-panel.open{transform:translateY(0)}
+#acp-cs{font-size:20px;letter-spacing:3px;font-weight:bold;margin-bottom:3px}
+#acp-type{font-size:11px;color:var(--dim);letter-spacing:1px;margin-bottom:10px}
+#acp-alt{font-size:13px;color:var(--text);letter-spacing:1px;margin-bottom:8px}
+#acp-rnames{font-size:13px;color:var(--accent);margin-bottom:2px}
+#acp-rcodes{font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:12px}
+.acp-btn{flex:1;background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:10px 8px;cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .15s}
+.acp-btn:hover,.acp-btn:active{background:var(--bg3);color:var(--text)}
+.acp-btn.p{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -231,6 +241,23 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
   </div>
 </div>
 
+<div id="ac-panel">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+    <div>
+      <div id="acp-cs"></div>
+      <div id="acp-type"></div>
+    </div>
+    <button onclick="closeAcPanel()" style="background:none;border:none;color:var(--dim);font-size:22px;cursor:pointer;padding:0 0 0 12px;line-height:1;flex-shrink:0">✕</button>
+  </div>
+  <div id="acp-alt"></div>
+  <div id="acp-rnames"></div>
+  <div id="acp-rcodes"></div>
+  <div style="display:flex;gap:8px">
+    <button id="acp-fa" class="acp-btn p">FlightAware ↗</button>
+    <button id="acp-adsb" class="acp-btn">ADS-B Exchange ↗</button>
+  </div>
+</div>
+
 <script>
 const WORKER_URL='https://gregentic-data.lobbingr.workers.dev';
 let cfg={loc:'Leesburg, VA',lat:39.1157,lon:-77.5636,radius:50,rss:'https://feeds.bbci.co.uk/news/world/rss.xml'};
@@ -299,7 +326,8 @@ let overlays={radar:false,aircraft:true,events:false,iss:false,aurora:false};
 let issInterval=null;
 const acHistory=new Map(); // icao → [{lat,lon}], capped at AC_HIST_MAX entries
 const AC_HIST_MAX=20;      // 20 × 30 s = ~10 min of trail per aircraft
-const routeCache=new Map(); // callsign → {orig,dest} | null (null = fetched, no route found)
+const routeCache=new Map(); // callsign → {orig,dest,origName,destName} | null
+const isTouchDevice=('ontouchstart' in window);
 
 // ── CLOCK ──────────────────────────────────────────────
 function tick(){
@@ -341,6 +369,7 @@ function initMap(){
   });
   new (makeCtrl('⌂','Return home',()=>map.flyTo([cfg.lat,cfg.lon],8,{duration:1})))().addTo(map);
   new (makeCtrl('↻','Refresh ADS-B',()=>refreshADSB()))().addTo(map);
+  if(isTouchDevice) map.on('click',closeAcPanel);
 }
 
 function setStyle(name){
@@ -498,6 +527,33 @@ async function fetchAurora(){
   }catch(e){console.warn('Aurora:',e);}
 }
 
+// ── Mobile aircraft info panel ────────────────────────
+function showAcPanel(a){
+  const route=routeCache.get(a.cs)||null;
+  const col=a.mil?'var(--warn)':'var(--accent2)';
+  const typeFull=acType(a.type);
+  document.getElementById('acp-cs').textContent=(a.mil?'★ ':'')+a.cs;
+  document.getElementById('acp-cs').style.color=col;
+  document.getElementById('acp-type').textContent=[typeFull,a.reg].filter(Boolean).join(' · ')||'—';
+  document.getElementById('acp-alt').textContent=
+    (a.alt?a.alt.toLocaleString()+' FT':'ALT?')+' / '+(a.spd?a.spd+' KTS':'—');
+  const rnames=document.getElementById('acp-rnames');
+  const rcodes=document.getElementById('acp-rcodes');
+  if(route){
+    rnames.textContent=route.origName+' → '+route.destName;
+    rcodes.textContent=route.orig+' → '+route.dest;
+    rnames.style.display='';rcodes.style.display='';
+  }else{
+    rnames.style.display='none';rcodes.style.display='none';
+  }
+  document.getElementById('acp-fa').onclick=
+    ()=>window.open('https://flightaware.com/live/flight/'+a.cs.trim(),'_blank');
+  document.getElementById('acp-adsb').onclick=
+    ()=>window.open('https://globe.adsbexchange.com/?icao='+a.icao,'_blank');
+  document.getElementById('ac-panel').classList.add('open');
+}
+function closeAcPanel(){document.getElementById('ac-panel').classList.remove('open');}
+
 // ── Route lookup (adsbdb.com, cached per session) ─────
 async function fetchRoute(cs){
   if(routeCache.has(cs)) return;       // already fetched or in-flight
@@ -574,10 +630,14 @@ async function fetchADSB(){
           ?`<br><a href="https://flightaware.com/live/flight/${a.cs.trim()}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;display:block;margin-top:3px">${route.origName} → ${route.destName}<br><small style="color:var(--muted);font-size:9px">${route.orig} → ${route.dest}</small></a>`
           :'';
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
-        L.marker([a.lat,a.lon],{icon:ic})
-         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
-         .on('click',()=>window.open(`https://globe.adsbexchange.com/?icao=${a.icao}`,'_blank'))
-         .addTo(acLayer);
+        const m=L.marker([a.lat,a.lon],{icon:ic});
+        if(isTouchDevice){
+          m.on('click',()=>showAcPanel(a));
+        }else{
+          m.bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
+           .on('click',()=>window.open(`https://globe.adsbexchange.com/?icao=${a.icao}`,'_blank'));
+        }
+        m.addTo(acLayer);
       });
     }
     const mil=ac.filter(a=>a.mil).length;
