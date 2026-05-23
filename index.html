@@ -297,6 +297,8 @@ const STYLES={
 let map,baseLayer,acLayer,radarLayer,eventsLayer,issLayer,auroraLayer,radiusCircle;
 let overlays={radar:false,aircraft:true,events:false,iss:false,aurora:false};
 let issInterval=null;
+const acHistory=new Map(); // icao → [{lat,lon}], capped at AC_HIST_MAX entries
+const AC_HIST_MAX=20;      // 20 × 30 s = ~10 min of trail per aircraft
 
 // ── CLOCK ──────────────────────────────────────────────
 function tick(){
@@ -313,6 +315,7 @@ setInterval(tick,1000);tick();
 
 // ── MAP ────────────────────────────────────────────────
 function initMap(){
+  acHistory.clear(); // location changed — old trails are wrong coordinates
   if(map) map.remove();
   map=L.map('map',{center:[cfg.lat,cfg.lon],zoom:8,zoomControl:true,attributionControl:false});
   const s=STYLES.dark;
@@ -511,11 +514,38 @@ async function fetchADSB(){
       spd:a.gs||null, hdg:a.track||0,
       type:a.t||'', mil:!!(a.dbFlags&&(a.dbFlags&1)), reg:a.r||''
     })).sort((a,b)=>(b.alt||0)-(a.alt||0));
+
+    // ── Accumulate position history (skip if aircraft hasn't moved) ──
+    ac.forEach(a=>{
+      const hist=acHistory.get(a.icao)||[];
+      const last=hist[hist.length-1];
+      if(!last||last.lat!==a.lat||last.lon!==a.lon){
+        hist.push({lat:a.lat,lon:a.lon});
+        if(hist.length>AC_HIST_MAX) hist.shift();
+      }
+      acHistory.set(a.icao,hist);
+    });
+
     acLayer.clearLayers();
     if(overlays.aircraft){
       ac.forEach(a=>{
         const col=a.mil?'#f59e0b':'#22c55e';
         const typeFull=acType(a.type);
+
+        // ── Fading trail ────────────────────────────────
+        const hist=acHistory.get(a.icao)||[];
+        if(hist.length>=2){
+          const segs=hist.length-1;
+          for(let i=0;i<segs;i++){
+            // Guard dateline crossings
+            if(Math.abs(hist[i].lon-hist[i+1].lon)>90) continue;
+            const opacity=0.08+(i/segs)*0.47; // oldest→0.08, newest→0.55
+            L.polyline([[hist[i].lat,hist[i].lon],[hist[i+1].lat,hist[i+1].lon]],
+              {color:col,weight:1.5,opacity,interactive:false}).addTo(acLayer);
+          }
+        }
+
+        // ── Aircraft marker ──────────────────────────────
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
          .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
@@ -543,6 +573,7 @@ async function fetchADSB(){
   }
 }
 function refreshADSB(){
+  acHistory.clear(); // fresh start on manual refresh
   document.getElementById('adsb-list').innerHTML='<div class="msg">Acquiring…</div>';
   document.getElementById('ac-count').textContent='-- CONTACTS';
   fetchADSB();
