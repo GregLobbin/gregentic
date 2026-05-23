@@ -513,13 +513,27 @@ async function fetchMarkets(){
       document.getElementById(elS).innerHTML=spark(closes);
     }catch(e){document.getElementById(elP).textContent='--';}
   }
-  // 30-year mortgage rate via FRED (Worker)
+  // 30-year mortgage rate via FRED
   try{
-    const r=await fetch(`${WORKER_URL}/mortgage`);
-    if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
-    const d=await r.json();
-    const obs=(d.observations||[]).filter(o=>o.value!=='.').reverse();
+    let obs=[];
+    // Try Worker first, then direct browser fetch
+    try{
+      const r=await fetch(`${WORKER_URL}/mortgage`,{signal:AbortSignal.timeout(8000)});
+      if(r.ok){const d=await r.json();obs=d.observations||[];}
+      else throw new Error('Worker failed');
+    }catch(e){
+      // Direct browser fallback — FRED CSV is publicly accessible
+      const r=await fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US',{signal:AbortSignal.timeout(8000)});
+      if(!r.ok) throw new Error(`FRED HTTP ${r.status}`);
+      const text=await r.text();
+      obs=text.trim().split('\n')
+        .filter(l=>!l.startsWith('DATE')&&l.includes(','))
+        .slice(-8)
+        .map(l=>{const [date,value]=l.split(',');return{date:date.trim(),value:value.trim()};})
+        .filter(o=>o.value&&o.value!='.');
+    }
     if(!obs.length) throw new Error('No data');
+    // CSV is oldest→newest; last entry is most recent
     const cur=parseFloat(obs[obs.length-1].value);
     const prev=parseFloat(obs[obs.length-2]?.value||cur);
     const prices=obs.map(o=>parseFloat(o.value));
