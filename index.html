@@ -135,6 +135,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
       <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://finance.yahoo.com/quote/%5EGSPC/','_blank')"><span class="mkt-sym">S&amp;P 500</span><span class="mkt-price" id="t-sp">--</span><span class="mkt-chg" id="t-sp-c"></span><span id="spark-sp"></span></div>
       <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://finance.yahoo.com/quote/BZ%3DF/','_blank')"><span class="mkt-sym">BRENT</span><span class="mkt-price" id="t-brent">--</span><span class="mkt-chg" id="t-brent-c"></span><span id="spark-brent"></span></div>
       <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://finance.yahoo.com/quote/BTC-USD/','_blank')"><span class="mkt-sym">BTC/USD</span><span class="mkt-price" id="t-btc">--</span><span class="mkt-chg" id="t-btc-c"></span><span id="spark-btc"></span></div>
+      <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://www.zillow.com/leesburg-va/','_blank')" title="View Leesburg real estate on Zillow">
+        <span class="mkt-sym">30Y MTG</span>
+        <span class="mkt-price" id="t-mtg">--</span>
+        <span class="mkt-chg" id="t-mtg-c"></span>
+        <span id="spark-mtg"></span>
+      </div>
     </div>
     <div class="sh"><span>TOP HEADLINES</span><div class="dot" id="nw-dot"></div></div>
     <div id="news-list"><div class="msg">Acquiring…</div></div>
@@ -507,6 +513,21 @@ async function fetchMarkets(){
       document.getElementById(elS).innerHTML=spark(closes);
     }catch(e){document.getElementById(elP).textContent='--';}
   }
+  // 30-year mortgage rate via FRED (Worker)
+  try{
+    const r=await fetch(`${WORKER_URL}/mortgage`);
+    if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
+    const d=await r.json();
+    const obs=(d.observations||[]).filter(o=>o.value!=='.').reverse();
+    if(!obs.length) throw new Error('No data');
+    const cur=parseFloat(obs[obs.length-1].value);
+    const prev=parseFloat(obs[obs.length-2]?.value||cur);
+    const prices=obs.map(o=>parseFloat(o.value));
+    document.getElementById('t-mtg').textContent=cur.toFixed(2)+'%';
+    document.getElementById('t-mtg-c').innerHTML=chgHtml((cur-prev)/prev*100);
+    document.getElementById('spark-mtg').innerHTML=spark(prices);
+  }catch(e){document.getElementById('t-mtg').textContent='--';}
+
   dot('mkt-dot',true);document.getElementById('sb-mkt').textContent=ftm();
 }
 function chgHtml(pct){
