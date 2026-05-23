@@ -534,15 +534,14 @@ async function fetchADSB(){
         const col=a.mil?'#f59e0b':'#22c55e';
         const typeFull=acType(a.type);
 
-        // ── Radar-scope dot trail ────────────────────────
+        // ── Dashed polyline trail ────────────────────────
         const hist=acHistory.get(a.icao)||[];
         if(hist.length>=2){
-          const n=hist.length-1; // dots to draw (all but current position)
-          for(let i=0;i<n;i++){
-            const opacity=0.1+(i/(n>1?n-1:1))*0.5; // oldest→0.1, newest→0.6
-            L.circleMarker([hist[i].lat,hist[i].lon],
-              {radius:2,color:col,fillColor:col,fillOpacity:opacity,
-               stroke:false,interactive:false}).addTo(acLayer);
+          const segs=hist.length-1;
+          for(let i=0;i<segs;i++){
+            const opacity=0.1+(i/(segs>1?segs-1:1))*0.4; // oldest→0.1, newest→0.5
+            L.polyline([[hist[i].lat,hist[i].lon],[hist[i+1].lat,hist[i+1].lon]],
+              {color:col,weight:1,opacity,dashArray:'3 5',interactive:false}).addTo(acLayer);
           }
         }
 
