@@ -509,7 +509,11 @@ async function fetchRoute(cs){
     const d=await r.json();
     const fr=d?.response?.flightroute;
     if(fr?.origin?.icao_code&&fr?.destination?.icao_code)
-      routeCache.set(cs,{orig:fr.origin.icao_code,dest:fr.destination.icao_code});
+      routeCache.set(cs,{
+        orig:fr.origin.icao_code,  dest:fr.destination.icao_code,
+        origName:fr.origin.name||fr.origin.icao_code,
+        destName:fr.destination.name||fr.destination.icao_code
+      });
   }catch(e){}  // silently leave as null
 }
 
@@ -566,7 +570,9 @@ async function fetchADSB(){
 
         // ── Aircraft marker ──────────────────────────────
         const route=routeCache.get(a.cs);
-        const routeLine=route?`<br><span style="color:var(--accent)">${route.orig} → ${route.dest}</span>`:'';
+        const routeLine=route
+          ?`<br><a href="https://flightaware.com/live/flight/${a.cs.trim()}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;display:block;margin-top:3px">${route.origName} → ${route.destName}<br><small style="color:var(--muted);font-size:9px">${route.orig} → ${route.dest}</small></a>`
+          :'';
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
          .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
