@@ -631,13 +631,10 @@ async function fetchADSB(){
           :'';
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         const m=L.marker([a.lat,a.lon],{icon:ic});
-        if(isTouchDevice){
-          m.on('click',()=>showAcPanel(a));
-        }else{
-          m.bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
-           .on('click',()=>window.open(`https://globe.adsbexchange.com/?icao=${a.icao}`,'_blank'));
+        if(!isTouchDevice){
+          m.bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}${routeLine}<br><small style="color:#888">Click for options</small>`,{direction:'top'});
         }
-        m.addTo(acLayer);
+        m.on('click',()=>showAcPanel(a)).addTo(acLayer);
       });
     }
     const mil=ac.filter(a=>a.mil).length;
