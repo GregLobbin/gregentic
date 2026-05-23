@@ -330,7 +330,29 @@ function updateTemporal(val){
   if(overlays.events){toggleOverlay('events');toggleOverlay('events');}
 }
 
-// ── RADAR ──────────────────────────────────────────────
+// ── AIRCRAFT TYPE LOOKUP ───────────────────────────────
+const AC_TYPES={
+  B738:'Boeing 737-800',B737:'Boeing 737-700',B739:'Boeing 737-900',
+  B752:'Boeing 757-200',B763:'Boeing 767-300',B77W:'Boeing 777-300ER',
+  B788:'Boeing 787-8',B789:'Boeing 787-9',B744:'Boeing 747-400',
+  A319:'Airbus A319',A320:'Airbus A320',A321:'Airbus A321',
+  A20N:'Airbus A320neo',A21N:'Airbus A321neo',
+  A333:'Airbus A330-300',A359:'Airbus A350-900',A388:'Airbus A380',
+  CRJ2:'CRJ-200',CRJ7:'CRJ-700',CRJ9:'CRJ-900',
+  E170:'Embraer E170',E175:'Embraer E175',E190:'Embraer E190',
+  DH8D:'Dash 8 Q400',AT75:'ATR 72-500',
+  C172:'Cessna 172',C208:'Cessna Caravan',SR22:'Cirrus SR22',
+  PC12:'Pilatus PC-12',TBM9:'TBM 930',PA28:'Piper Cherokee',
+  GLF5:'Gulfstream G550',GLF6:'Gulfstream G650',
+  C56X:'Citation Excel',C68A:'Citation Sovereign',F2TH:'Falcon 2000',
+  F900:'Falcon 900',LJ45:'Learjet 45',
+  R44:'Robinson R44',EC35:'Airbus H135',S92:'Sikorsky S-92',
+  C17:'C-17 Globemaster',C130:'C-130 Hercules',
+  V22:'V-22 Osprey',F16:'F-16 Falcon',F18:'F/A-18 Hornet',
+  F35:'F-35 Lightning II',P8:'P-8 Poseidon',E3TF:'E-3 Sentry (AWACS)',
+  RC135:'RC-135',KC135:'KC-135 Stratotanker',B52:'B-52 Stratofortress',
+};
+function acType(t){return AC_TYPES[t]||t||'';}
 async function initRadar(){
   try{
     const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');
@@ -378,16 +400,25 @@ async function fetchADSB(){
     if(overlays.aircraft){
       ac.forEach(a=>{
         const col=a.mil?'#f59e0b':'#22c55e';
-        const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
+        const typeFull=acType(a.type);
+        const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         L.marker([a.lat,a.lon],{icon:ic})
-         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${a.type?' · '+a.type:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}`,{direction:'top'})
+         .bindTooltip(`<b style="color:${col};font-family:monospace">${a.cs}</b>${typeFull?' · '+typeFull:''}${a.reg?' · '+a.reg:''}<br>${a.alt?a.alt.toLocaleString()+' ft':'ALT?'} / ${a.spd?a.spd+' kts':'—'}${a.mil?' · <span style="color:#f59e0b">MIL</span>':''}<br><small style="color:#888">Click to track on ADS-B Exchange</small>`,{direction:'top'})
+         .on('click',()=>window.open(`https://globe.adsbexchange.com/?icao=${a.icao}`,'_blank'))
          .addTo(acLayer);
       });
     }
     const mil=ac.filter(a=>a.mil).length;
     document.getElementById('ac-count').textContent=`${ac.length} CONTACTS${mil?' · '+mil+' MIL':''}`;
     document.getElementById('adsb-list').innerHTML=ac.length
-      ?ac.slice(0,40).map(a=>`<div class="aci"><div class="ac-cs" style="${a.mil?'color:var(--warn)':''}">${a.mil?'★ ':''}${a.cs}${a.type?' <small style="color:var(--muted)">'+a.type+'</small>':''}</div><div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':'—'} | ${a.spd?a.spd+' KTS':'—'}${a.reg?' | '+a.reg:''}</div></div>`).join('')
+      ?ac.slice(0,40).map(a=>{
+        const typeFull=acType(a.type);
+        const faUrl=a.cs?`https://flightaware.com/live/flight/${a.cs.trim()}`:`https://globe.adsbexchange.com/?icao=${a.icao}`;
+        return`<div class="aci" style="cursor:pointer" onclick="window.open('${faUrl}','_blank')">
+          <div class="ac-cs" style="${a.mil?'color:var(--warn)':''}">${a.mil?'★ ':''}${a.cs}${typeFull?` <small style="color:var(--muted)">${typeFull}</small>`:''}${a.reg?` <small style="color:var(--muted)">${a.reg}</small>`:''}</div>
+          <div class="ac-d">${a.alt?a.alt.toLocaleString()+' FT':'—'} | ${a.spd?a.spd+' KTS':'—'} <small style="color:var(--border)">↗ FlightAware</small></div>
+        </div>`;
+      }).join('')
       :'<div class="msg">No airborne contacts in range</div>';
     dot('ab-dot',true);document.getElementById('sb-ab').textContent=ftm();
   }catch(e){
