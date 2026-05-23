@@ -31,16 +31,21 @@ export default {
       const lat  = url.searchParams.get('lat')  || '39.1157';
       const lon  = url.searchParams.get('lon')  || '-77.5636';
       const dist = url.searchParams.get('dist') || '50';
-      try {
-        const r = await fetch(
-          `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`,
-          { signal: AbortSignal.timeout(10000) }
-        );
-        if (!r.ok) throw new Error(`adsb.lol HTTP ${r.status}`);
-        return json(await r.json());
-      } catch (e) {
-        return json({ error: e.message, ac: [] }, 502);
+      let lastErr;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          if (attempt > 1) await new Promise(r => setTimeout(r, 1500));
+          const r = await fetch(
+            `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`,
+            { signal: AbortSignal.timeout(attempt === 1 ? 8000 : 7000) }
+          );
+          if (!r.ok) throw new Error(`adsb.lol HTTP ${r.status}`);
+          return json(await r.json());
+        } catch (e) {
+          lastErr = e;
+        }
       }
+      return json({ error: lastErr.message, ac: [] }, 502);
     }
 
     // ── Markets: S&P 500, Brent Crude, 30Y Treasury ─────

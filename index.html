@@ -499,10 +499,12 @@ async function fetchAurora(){
 
 // ── ADS-B (via Cloudflare Worker → adsb.lol) ──────────
 async function fetchADSB(){
-  try{
+  let lastErr;
+  for(let attempt=1;attempt<=2;attempt++){try{
+    if(attempt>1){document.getElementById('sb-ab').textContent='RETRY…';await new Promise(r=>setTimeout(r,4000));}
     const r=await fetch(
       `${WORKER_URL}/adsb?lat=${cfg.lat}&lon=${cfg.lon}&dist=${cfg.radius}`,
-      {signal:AbortSignal.timeout(15000)}
+      {signal:AbortSignal.timeout(12000)}
     );
     if(!r.ok) throw new Error(`Worker HTTP ${r.status}`);
     const data=await r.json();
@@ -565,10 +567,18 @@ async function fetchADSB(){
       }).join('')
       :'<div class="msg">No airborne contacts in range</div>';
     dot('ab-dot',true);document.getElementById('sb-ab').textContent=ftm();
-  }catch(e){
-    document.getElementById('adsb-list').innerHTML=`<div class="err">ADS-B UNAVAILABLE<br><small style="color:var(--muted)">${e.message}</small></div>`;
+    return; // success — exit retry loop
+  }catch(e){lastErr=e;}}
+  // Both attempts failed — preserve stale map/contacts, show subtle indicator
+  dot('ab-dot',false);
+  if(document.getElementById('adsb-list').querySelector('.aci')){
+    document.getElementById('sb-ab').textContent='STALE '+ftm();
+    document.getElementById('ac-count').textContent=
+      document.getElementById('ac-count').textContent.replace(' (STALE)','')+' (STALE)';
+  }else{
+    document.getElementById('adsb-list').innerHTML=`<div class="err">ADS-B UNAVAILABLE<br><small style="color:var(--muted)">${lastErr.message}</small></div>`;
     document.getElementById('ac-count').textContent='-- CONTACTS';
-    dot('ab-dot',false);
+    document.getElementById('sb-ab').textContent='ERR';
   }
 }
 function refreshADSB(){
