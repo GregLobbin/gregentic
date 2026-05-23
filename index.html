@@ -445,7 +445,7 @@ async function fetchWX(){
     const d=await r.json(),c=d.current;
     const vis=(c.visibility/1609.34).toFixed(1);
     document.getElementById('wx-body').innerHTML=`
-      <div id="wx-temp" style="cursor:pointer" onclick="window.open('https://www.windy.com/${cfg.lat}/${cfg.lon}?radar','_blank')" title="Open Windy.com">${Math.round(c.temperature_2m)}°F<sup style="font-size:14px;color:var(--dim);vertical-align:super;margin-left:4px">↗</sup></div>
+      <div id="wx-temp" style="cursor:pointer" onclick="window.open('https://www.wunderground.com/forecast/${cfg.lat},${cfg.lon}','_blank')" title="Open Weather Underground">${Math.round(c.temperature_2m)}°F<sup style="font-size:14px;color:var(--dim);vertical-align:super;margin-left:4px">↗</sup></div>
       <div id="wx-desc">${wmoDesc(c.weather_code)}</div>
       <div id="wx-grid">
         ${wi('HUMIDITY',c.relative_humidity_2m+'%')}
