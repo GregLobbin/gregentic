@@ -579,7 +579,7 @@ function showAcPanel(a){
   const rnames=document.getElementById('acp-rnames');
   const rcodes=document.getElementById('acp-rcodes');
   if(route){
-    rnames.textContent=route.origName+' → '+route.destName;
+    rnames.innerHTML=route.origName+' → '+route.destName+' <small style="color:var(--muted);font-size:10px">· typical</small>';
     rcodes.textContent=route.orig+' → '+route.dest;
     rnames.style.display='';rcodes.style.display='';
   }else{
@@ -675,7 +675,7 @@ async function fetchADSB(){
         // ── Aircraft marker ──────────────────────────────
         const route=routeCache.get(a.cs);
         const routeLine=route
-          ?`<br><a href="https://flightaware.com/live/flight/${a.cs.trim()}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;display:block;margin-top:3px">${route.origName} → ${route.destName}<br><small style="color:var(--muted);font-size:9px">${route.orig} → ${route.dest}</small></a>`
+          ?`<br><a href="https://flightaware.com/live/flight/${a.cs.trim()}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;display:block;margin-top:3px">${route.origName} → ${route.destName} <small style="color:var(--muted)">· typical</small><br><small style="color:var(--muted);font-size:9px">${route.orig} → ${route.dest}</small></a>`
           :'';
         const ic=L.divIcon({html:`<div style="color:${col};font-size:14px;transform:rotate(${a.hdg}deg);line-height:1;text-shadow:0 0 6px ${col}88;cursor:pointer">${a.mil?'★':'▲'}</div>`,iconSize:[14,14],className:''});
         const m=L.marker([a.lat,a.lon],{icon:ic});
