@@ -603,12 +603,21 @@ async function fetchRoute(cs){
     if(!r.ok) return;
     const d=await r.json();
     const fr=d?.response?.flightroute;
-    if(fr?.origin?.icao_code&&fr?.destination?.icao_code)
+    if(fr?.origin?.icao_code&&fr?.destination?.icao_code){
+      // "San Francisco, CA" for US/CA; "London, GB" for international
+      const lbl=ap=>{
+        const city=ap.municipality||ap.name||ap.icao_code;
+        const cc=ap.iso_country||'';
+        const sfx=(cc==='US'||cc==='CA')
+          ?(ap.iso_region?ap.iso_region.split('-').pop():'')
+          :cc;
+        return sfx?`${city}, ${sfx}`:city;
+      };
       routeCache.set(cs,{
         orig:fr.origin.icao_code,  dest:fr.destination.icao_code,
-        origName:fr.origin.name||fr.origin.icao_code,
-        destName:fr.destination.name||fr.destination.icao_code
+        origName:lbl(fr.origin),   destName:lbl(fr.destination)
       });
+    }
   }catch(e){}  // silently leave as null
 }
 
