@@ -26,26 +26,57 @@ export default {
       return json({ status: 'GREGENTIC DATA WORKER', version: '4.0', ts: Date.now() });
     }
 
-    // ── ADS-B via adsb.lol ──────────────────────────────
+    // ── ADS-B: adsb.lol → OpenSky fallback ─────────────
     if (path === '/adsb') {
-      const lat  = url.searchParams.get('lat')  || '39.1157';
-      const lon  = url.searchParams.get('lon')  || '-77.5636';
-      const dist = url.searchParams.get('dist') || '50';
-      let lastErr;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          if (attempt > 1) await new Promise(r => setTimeout(r, 1500));
-          const r = await fetch(
-            `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`,
-            { signal: AbortSignal.timeout(attempt === 1 ? 8000 : 7000) }
-          );
-          if (!r.ok) throw new Error(`adsb.lol HTTP ${r.status}`);
-          return json(await r.json());
-        } catch (e) {
-          lastErr = e;
-        }
+      const lat  = parseFloat(url.searchParams.get('lat')  || '39.1157');
+      const lon  = parseFloat(url.searchParams.get('lon')  || '-77.5636');
+      const dist = parseFloat(url.searchParams.get('dist') || '50');
+
+      // 1. Try adsb.lol
+      try {
+        const r = await fetch(
+          `https://api.adsb.lol/v2/lat/${lat}/lon/${lon}/dist/${dist}`,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36',
+              'Accept': 'application/json',
+              'Referer': 'https://adsb.lol/',
+            },
+            signal: AbortSignal.timeout(8000),
+          }
+        );
+        if (r.ok) return json(await r.json());
+      } catch (_) {}
+
+      // 2. Fallback: OpenSky Network (state array → adsb.lol-compatible ac[])
+      try {
+        const latDelta = dist / 60;
+        const lonDelta = dist / (60 * Math.cos(lat * Math.PI / 180));
+        const bbox = `lamin=${(lat - latDelta).toFixed(4)}&lomin=${(lon - lonDelta).toFixed(4)}&lamax=${(lat + latDelta).toFixed(4)}&lomax=${(lon + lonDelta).toFixed(4)}`;
+        const r = await fetch(
+          `https://opensky-network.org/api/states/all?${bbox}`,
+          { signal: AbortSignal.timeout(10000) }
+        );
+        if (!r.ok) throw new Error(`OpenSky HTTP ${r.status}`);
+        const d = await r.json();
+        const ac = (d.states || [])
+          .filter(s => s[5] != null && s[6] != null)
+          .map(s => ({
+            hex:      s[0],
+            flight:   s[1] ? s[1].trim() : s[0],
+            lat:      s[6],
+            lon:      s[5],
+            alt_baro: s[8] ? 0 : (s[7] != null ? Math.round(s[7] * 3.28084) : null),
+            gs:       s[9] != null ? Math.round(s[9] * 1.94384) : null,
+            track:    s[10] || 0,
+            t:        '',
+            r:        '',
+            dbFlags:  0,
+          }));
+        return json({ ac, src: 'opensky' });
+      } catch (e) {
+        return json({ error: e.message, ac: [] }, 502);
       }
-      return json({ error: lastErr.message, ac: [] }, 502);
     }
 
     // ── Markets: S&P 500, Brent Crude, 30Y Treasury ─────
