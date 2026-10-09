@@ -54,6 +54,15 @@ a.tk:hover .ext{color:var(--accent)}
 .spark{width:100%;height:34px;display:block;margin-top:2px}
 .sparkl{font-size:9px;color:var(--muted);letter-spacing:1px}
 
+.tk .dl{font-size:11px;color:var(--dim)}
+.snap .tk{background:var(--bg2)}
+.rhead{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--warn);padding:12px 14px;display:flex;flex-wrap:wrap;gap:12px 24px;justify-content:space-between;align-items:center}
+.rh-k{font-size:10px;letter-spacing:3px;color:var(--warn)}
+.rh-t{font-size:24px;font-weight:bold;letter-spacing:3px;color:var(--text)}
+.rh-m{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:11px;color:var(--dim);margin-top:2px}
+.rh-r{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.rh-c{display:grid;gap:4px}
+.rh-chg{font-size:11px;color:var(--warn)}
 /* verdict */
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
 @media(max-width:860px){.two{grid-template-columns:1fr}}
@@ -122,24 +131,19 @@ ul.l li::marker{color:var(--accent)}
 
 <div class="wrap">
   <section class="blk">
-    <div class="sh green"><span>LIVE // 52-WEEK TRENDS</span><small id="live-st">acquiring…</small></div>
+    <div class="sh green"><span>● LIVE // NOW</span><small id="live-st">acquiring…</small></div>
     <div class="strip" id="strip"></div>
   </section>
+  <section class="blk" id="rpt-sec" hidden>
+    <div class="rhead" id="rhead"></div>
+    <div class="strip snap" id="snap"></div>
+  </section>
   <div id="app"><div class="msg">Acquiring report…</div></div>
-  <div class="foot"><span>GREGENTIC.COM // MHC v1.0</span><span>Data read, not financial advice. Report values are approximate as of each report date.</span></div>
+  <div class="foot"><span>GREGENTIC.COM // MHC v1.1</span><span>Data read, not financial advice. Report values are approximate as of each report date.</span></div>
 </div>
 
 <script>
 const WORKER_URL='https://gregentic-data.lobbingr.workers.dev';
-const LIVE=[
-  {sym:'^GSPC',label:'S&P 500',fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),yh:'%5EGSPC'},
-  {sym:'^TNX',label:'10Y TREAS',fmt:v=>v.toFixed(2)+'%',yh:'%5ETNX',inv:true},
-  {sym:'^TYX',label:'30Y TREAS',fmt:v=>v.toFixed(2)+'%',yh:'%5ETYX',inv:true},
-  {sym:'^IRX',label:'13W T-BILL (CASH)',fmt:v=>v.toFixed(2)+'%',yh:'%5EIRX'},
-  {sym:'BZ=F',label:'BRENT',fmt:v=>'$'+v.toFixed(2),yh:'BZ%3DF',inv:true},
-  {sym:'BTC-USD',label:'BTC/USD',fmt:v=>'$'+Math.round(v).toLocaleString(),yh:'BTC-USD'},
-  {sym:'^VIX',label:'VIX',fmt:v=>v.toFixed(1),yh:'%5EVIX',inv:true}
-];
 const LADDER=[{s:-2,n:'Deploy+',d:'aggressive'},{s:-1,n:'Deploy',d:'gradual'},{s:0,n:'Hold',d:'no change'},{s:1,n:'Build',d:'steady'},{s:2,n:'Build+',d:'aggressive'}];
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const sig=s=>el('span','sig '+(s||''));
@@ -161,51 +165,86 @@ function sparkSvg(vals,color,label){
   return svg;
 }
 
-// ── LIVE STRIP (worker /history) with fallback to report tickers ──
-let reportTickers=null,liveOk=false;
+// ── INDICATOR SET (shared by live strip and report snapshot) ──
+const IND=[
+  {key:'sp500',sym:'^GSPC',label:'S&P 500',kind:'pct',fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),yh:'%5EGSPC'},
+  {key:'y10',sym:'^TNX',label:'10Y TREAS',kind:'bp',inv:true,fmt:v=>v.toFixed(2)+'%',yh:'%5ETNX'},
+  {key:'y30',sym:'^TYX',label:'30Y TREAS',kind:'bp',inv:true,fmt:v=>v.toFixed(2)+'%',yh:'%5ETYX'},
+  {key:'bill13',sym:'^IRX',label:'13W T-BILL (CASH)',kind:'bp',fmt:v=>v.toFixed(2)+'%',yh:'%5EIRX'},
+  {key:'brent',sym:'BZ=F',label:'BRENT',kind:'pct',inv:true,fmt:v=>'$'+v.toFixed(2),yh:'BZ%3DF'},
+  {key:'btc',sym:'BTC-USD',label:'BTC/USD',kind:'pct',fmt:v=>'$'+Math.round(v).toLocaleString(),yh:'BTC-USD'},
+  {key:'vix',sym:'^VIX',label:'VIX',kind:'pct',inv:true,fmt:v=>v.toFixed(1),yh:'%5EVIX'}
+];
+const num=x=>typeof x==='number'?x:(x&&typeof x.v==='number'?x.v:null);
+function delta(I,now,then,tag){
+  const d=el('div','dl');
+  if(now==null||then==null){d.append(el('span','flat','—'),document.createTextNode(' '+tag));return d}
+  const diff=I.kind==='bp'?(now-then)*100:(now-then)/Math.abs(then)*100;
+  const txt=I.kind==='bp'?Math.abs(diff).toFixed(0)+'bp':Math.abs(diff).toFixed(1)+'%';
+  const cls=Math.abs(diff)<(I.kind==='bp'?1:0.1)?'flat':diff>0?'up':'dn';
+  const arrow=cls==='flat'?'–':diff>0?'▲':'▼';
+  d.append(el('span',cls,arrow+txt),document.createTextNode(' '+tag));return d;
+}
+let live={},liveSeries={},cur=null,prev=null;
 async function loadLive(){
   const st=document.getElementById('live-st');
   try{
     const r=await fetch(`${WORKER_URL}/history`);
     if(!r.ok)throw new Error('HTTP '+r.status);
-    const d=await r.json();
-    const strip=document.getElementById('strip');strip.replaceChildren();
-    let n=0;
-    LIVE.forEach(L=>{
-      const s=d[L.sym];if(!s||s.error||!s.c?.length)return;n++;
-      const vals=s.c,cur=s.price??vals.at(-1),first=vals[0];
-      const pct=(cur-first)/Math.abs(first)*100;
-      const good=L.inv?pct<0:pct>0;
-      const col=Math.abs(pct)<0.5?css('--dim'):good?css('--green'):css('--red');
-      const a=el('a','tk');a.href=`https://finance.yahoo.com/quote/${L.yh}/`;a.target='_blank';a.rel='noopener';a.title='Open on Yahoo Finance';
-      const top=el('div','top');top.append(el('span','lbl',L.label),el('span','ext','↗'));
-      const ch=el('div','s');const sp=el('span',pct>0?'up':pct<0?'dn':'flat',(pct>0?'▲':pct<0?'▼':'–')+Math.abs(pct).toFixed(1)+'%');ch.append(sp,document.createTextNode(' 52 wk'));
-      a.append(top,el('div','v',L.fmt(cur)),ch);
-      const g=sparkSvg(vals,col,`${L.label} 52-week trend`);if(g)a.append(g);
-      const d0=new Date(s.t[0]*1000),d1=new Date(s.t.at(-1)*1000),m=x=>x.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-      a.append(el('div','sparkl',m(d0)+' → '+m(d1)));
-      strip.append(a);
-    });
+    const d=await r.json();let n=0;
+    IND.forEach(I=>{const s=d[I.sym];if(!s||s.error||!s.c?.length)return;n++;liveSeries[I.key]=s;live[I.key]=s.price??s.c.at(-1)});
     if(!n)throw new Error('no series');
-    liveOk=true;st.textContent='live · weekly closes · '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  }catch(e){
-    st.textContent='live feed unavailable · showing report values';
-    renderReportStrip();
-  }
+    st.textContent='updated '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' · 52-wk weekly closes';
+  }catch(e){st.textContent='live feed offline'}
+  renderLive();
 }
-function renderReportStrip(){
-  if(liveOk||!reportTickers)return;
+function renderLive(){
   const strip=document.getElementById('strip');strip.replaceChildren();
-  reportTickers.forEach(t=>{
-    const a=el(t.link?'a':'div','tk');if(t.link){a.href=t.link;a.target='_blank';a.rel='noopener'}
-    const top=el('div','top');top.append(sig(t.signal),el('span','lbl',t.label));if(t.link)top.append(el('span','ext','↗'));
-    a.append(top,el('div','v',t.value),el('div','s',t.sub||''));
-    const vals=(t.trend||[]).map(p=>p.v).filter(v=>typeof v==='number');
-    const g=sparkSvg(vals,css('--'+(t.signal||'accent'))||css('--accent'));if(g){a.append(g,el('div','sparkl',t.trend[0].m+' → '+t.trend.at(-1).m))}
+  const snap=cur?.snapshot||{};const tag=cur?'since '+fmtShort(cur.date)+' report':'';
+  if(!Object.keys(live).length){strip.append(el('div','msg','Live feed offline. The report snapshot below shows the last recorded values.'));return}
+  IND.forEach(I=>{
+    const s=liveSeries[I.key];if(!s)return;
+    const v=live[I.key],first=s.c[0],pct=(v-first)/Math.abs(first)*100,good=I.inv?pct<0:pct>0;
+    const col=Math.abs(pct)<0.5?css('--dim'):good?css('--green'):css('--red');
+    const a=el('a','tk');a.href=`https://finance.yahoo.com/quote/${I.yh}/`;a.target='_blank';a.rel='noopener';a.title='Open on Yahoo Finance';
+    const top=el('div','top');top.append(el('span','lbl',I.label),el('span','ext','↗'));
+    a.append(top,el('div','v',I.fmt(v)));
+    if(cur)a.append(delta(I,v,num(snap[I.key]),tag));
+    const g=sparkSvg(s.c,col,`${I.label} 52-week trend`);if(g)a.append(g);
+    const m=x=>new Date(x*1000).toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+    a.append(el('div','sparkl',m(s.t[0])+' → '+m(s.t.at(-1))+' · '+(pct>=0?'+':'')+pct.toFixed(1)+'% 52wk'));
     strip.append(a);
   });
 }
-
+const fmtShort=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+const fmtMonth=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase();
+function renderReportHead(){
+  const r=cur,sec=document.getElementById('rpt-sec');sec.hidden=false;
+  const h=document.getElementById('rhead');h.replaceChildren();
+  const l=el('div','rh-l');
+  l.append(el('div','rh-k','REPORT'),el('div','rh-t',fmtMonth(r.date)));
+  const meta=el('div','rh-m');meta.append(el('span',null,'Issued '+fmtDate(r.date)),el('span',null,'Data as of '+(r.dataAsOf||fmtDate(r.date))),el('span',null,prev?'Compared with '+fmtDate(prev.date)+' report':'Baseline report — no prior period'));
+  l.append(meta);
+  const rr=el('div','rh-r');
+  const c1=el('div','rh-c');c1.append(el('span','lbl','OVERALL'),el('span','chip '+(r.overall?.signal||''),r.overall?.label||''));
+  const c2=el('div','rh-c');c2.append(el('span','lbl','DRY POWDER'),el('span','chip acc',r.powder?.label||''));
+  rr.append(c1,c2);
+  if(prev&&prev.powder?.label!==r.powder?.label)rr.append(el('div','rh-chg','Changed from '+prev.powder?.label));
+  h.append(l,rr);
+  // snapshot strip
+  const snap=document.getElementById('snap');snap.replaceChildren();
+  const S=r.snapshot||{},P=prev?.snapshot||{};
+  IND.forEach(I=>{
+    const x=S[I.key],v=num(x);
+    const t=el('div','tk');
+    const top=el('div','top');top.append(sig(x?.signal),el('span','lbl',I.label));
+    t.append(top,el('div','v',v==null?'n/a':I.fmt(v)));
+    if(prev)t.append(delta(I,v,num(P[I.key]),'vs '+fmtShort(prev.date)+' report'));
+    else t.append(el('div','dl',v==null?'not recorded':'baseline'));
+    if(x?.note)t.append(el('div','s',x.note));
+    snap.append(t);
+  });
+}
 // ── PULLBACK RULER ──
 function ruler(p){
   const W=800,H=96,pad=40,minPct=-25,x=v=>pad+(v-minPct)/(0-minPct)*(W-2*pad);
@@ -228,7 +267,6 @@ function ruler(p){
 
 // ── REPORT ──
 function render(r){
-  reportTickers=r.tickers||[];renderReportStrip();
   const app=document.getElementById('app');app.replaceChildren();
   const box=el('div');box.style.cssText='display:grid;gap:16px';
 
@@ -264,16 +302,22 @@ function render(r){
   app.append(box);
 }
 
+let LIST=[];
+async function getReport(date){const r=await fetch(`reports/${date}.json`,{cache:'no-cache'});if(!r.ok)throw 0;return r.json()}
 async function loadReport(date){
-  try{const r=await fetch(`reports/${date}.json`,{cache:'no-cache'});if(!r.ok)throw 0;render(await r.json())}
-  catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
+  try{
+    cur=await getReport(date);
+    const i=LIST.findIndex(x=>x.date===date),p=LIST[i+1];
+    prev=p?await getReport(p.date).catch(()=>null):null;
+    renderReportHead();renderLive();render(cur);
+  }catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
 }
 (async()=>{
   loadLive();
   const pick=document.getElementById('pick');
   try{
     const r=await fetch('reports/index.json',{cache:'no-cache'});const idx=await r.json();
-    const list=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const list=LIST=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     if(!list.length)throw 0;
     pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+' · '+(x.label||'')+' · '+(x.powder||''));o.value=x.date;pick.append(o)});
     const want=location.hash.slice(1),sel=list.find(x=>x.date===want)?.date||list[0].date;pick.value=sel;loadReport(sel);

@@ -1,4 +1,55 @@
 {
+ "date": "2026-10-09",
+ "dataAsOf": "Oct 1–8, 2026",
+ "overall": {
+  "headline": "Stagflation-shaped risk, not a credit blowup",
+  "label": "Yellow",
+  "signal": "yellow",
+  "text": "Stocks sit near record highs while the 10-yr Treasury touched 5.34%, its highest since 2002, and Brent holds above $100 with Hormuz disrupted. Hiring has nearly stalled. Credit is softening at the edges but not breaking. Expect a slower, choppier market, not a crash call."
+ },
+ "powder": {
+  "action": "Keep new 401k contributions flowing to Bond Plus. No transfers in either direction. The S&P 500 Equity Index is within ~1% of its high, nowhere near the 10% pullback that opens the deploy zone, and cash-like yields near 5% pay you to wait.",
+  "label": "Build — steady",
+  "note": "Check what Bond Plus actually holds. If it is an intermediate bond fund, it carries interest-rate risk: rising yields push its price down, and that's the main threat right now. A stable-value or money-market option in your plan would be closer to true dry powder. Not financial advice.",
+  "score": 1
+ },
+ "snapshot": {
+  "sp500": {
+   "v": 7666,
+   "signal": "yellow",
+   "note": "Oct 1 close, ≈1% below record"
+  },
+  "y10": {
+   "v": 5.28,
+   "signal": "red",
+   "note": "Oct 7; hit 5.34% Oct 1, highest since 2002"
+  },
+  "y30": {
+   "v": 5.7,
+   "signal": "red",
+   "note": "24-year high"
+  },
+  "bill13": {
+   "v": null,
+   "signal": "green",
+   "note": "Cash yielding ≈5%"
+  },
+  "brent": {
+   "v": 102.31,
+   "signal": "red",
+   "note": "Hormuz disrupted"
+  },
+  "btc": {
+   "v": 84800,
+   "signal": "yellow",
+   "note": "≈33% below Oct 2025 peak"
+  },
+  "vix": {
+   "v": null,
+   "signal": "yellow",
+   "note": "Not recorded in baseline"
+  }
+ },
  "board": [
   {
    "change": "baseline",
@@ -92,8 +143,6 @@
  "changes": [
   "First report; this sets the baseline for future month-over-month comparisons."
  ],
- "dataAsOf": "Oct 1–8, 2026",
- "date": "2026-10-09",
  "macro": [
   {
    "name": "Treasury yields",
@@ -146,18 +195,6 @@
    "text": "Record forward earnings carry the index higher over a year if margins hold. Valuation caps the upside. A 10–15% pullback somewhere in the year is a normal event and the likely deploy window."
   }
  ],
- "overall": {
-  "headline": "Stagflation-shaped risk, not a credit blowup",
-  "label": "Yellow",
-  "signal": "yellow",
-  "text": "Stocks sit near record highs while the 10-yr Treasury touched 5.34%, its highest since 2002, and Brent holds above $100 with Hormuz disrupted. Hiring has nearly stalled. Credit is softening at the edges but not breaking. Expect a slower, choppier market, not a crash call."
- },
- "powder": {
-  "action": "Keep new 401k contributions flowing to Bond Plus. No transfers in either direction. The S&P 500 Equity Index is within ~1% of its high, nowhere near the 10% pullback that opens the deploy zone, and cash-like yields near 5% pay you to wait.",
-  "label": "Build — steady",
-  "note": "Check what Bond Plus actually holds. If it is an intermediate bond fund, it carries interest-rate risk: rising yields push its price down, and that's the main threat right now. A stable-value or money-market option in your plan would be closer to true dry powder. Not financial advice.",
-  "score": 1
- },
  "pullback": {
   "ath": 7700,
   "level": 7666,
