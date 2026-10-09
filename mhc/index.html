@@ -25,7 +25,7 @@ a:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-off
 .hr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:5px 12px;letter-spacing:1px;text-decoration:none}
 .hbtn:hover{border-color:var(--accent);color:var(--accent)}
-select{background:var(--bg3);color:var(--text);border:1px solid var(--border);font-family:var(--font);font-size:12px;padding:5px 8px}
+select{background:var(--bg3);color:var(--text);border:1px solid var(--accent);cursor:pointer;font-family:var(--font);font-size:12px;padding:5px 8px}
 .wrap{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px}
 .sh{background:var(--bg3);padding:7px 12px;font-size:10px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border);border-left:3px solid var(--accent);display:flex;justify-content:space-between;align-items:center;gap:10px;text-transform:uppercase}
 .sh.green{border-left-color:var(--accent2);color:var(--accent2)}
@@ -123,7 +123,7 @@ ul.l li::marker{color:var(--accent)}
 <div id="hdr">
   <a id="logo" href="/">GREG<em>ENTIC</em><span class="ver">// MARKET HEALTH CHECK</span></a>
   <div class="hr">
-    <label class="lbl" for="pick">REPORT</label>
+    <label class="lbl" for="pick" id="pick-lbl">SELECT REPORT</label>
     <select id="pick"><option>Loading…</option></select>
     <a class="hbtn" href="/">◀ COP</a>
   </div>
@@ -188,14 +188,35 @@ function delta(I,now,then,tag){
 let live={},liveSeries={},cur=null,prev=null;
 async function loadLive(){
   const st=document.getElementById('live-st');
+  let full=false;
   try{
     const r=await fetch(`${WORKER_URL}/history`);
     if(!r.ok)throw new Error('HTTP '+r.status);
     const d=await r.json();let n=0;
-    IND.forEach(I=>{const s=d[I.sym];if(!s||s.error||!s.c?.length)return;n++;liveSeries[I.key]=s;live[I.key]=s.price??s.c.at(-1)});
-    if(!n)throw new Error('no series');
-    st.textContent='updated '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})+' · 52-wk weekly closes';
-  }catch(e){st.textContent='live feed offline'}
+    IND.forEach(I=>{const s=d[I.sym];if(!s||s.error||!s.c?.length)return;n++;liveSeries[I.key]={...s,span:'52wk'};live[I.key]=s.price??s.c.at(-1)});
+    if(!n)throw new Error('no series');full=true;
+  }catch(e){
+    // Fallback: existing /markets route (7-day) + CoinGecko for BTC (1-year)
+    await Promise.all([
+      (async()=>{try{
+        const r=await fetch(`${WORKER_URL}/markets`);if(!r.ok)return;const d=await r.json();
+        [['^GSPC','sp500'],['BZ=F','brent'],['^TYX','y30']].forEach(([sym,key])=>{
+          const res=d[sym]?.chart?.result?.[0];if(!res)return;
+          const ts=res.timestamp||[],cl=res.indicators?.quote?.[0]?.close||[];
+          const pts=ts.map((t,i)=>[t,cl[i]]).filter(p=>p[1]!=null);
+          const price=res.meta?.regularMarketPrice??pts.at(-1)?.[1];if(price==null)return;
+          liveSeries[key]={t:pts.map(p=>p[0]),c:pts.map(p=>p[1]),price,span:'7d'};live[key]=price;
+        });
+      }catch(_){}})(),
+      (async()=>{try{
+        const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365&interval=daily');if(!r.ok)return;
+        const d=await r.json();const pr=(d.prices||[]).filter((_,i,a)=>i%7===0||i===a.length-1);
+        if(pr.length){liveSeries.btc={t:pr.map(p=>Math.floor(p[0]/1000)),c:pr.map(p=>p[1]),price:pr.at(-1)[1],span:'52wk'};live.btc=pr.at(-1)[1]}
+      }catch(_){}})()
+    ]);
+  }
+  const n=Object.keys(live).length,t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  st.textContent=!n?'live feed offline':full?'updated '+t+' · 52-wk weekly closes':`updated ${t} · partial feed (${n} of ${IND.length})`;
   renderLive();
 }
 function renderLive(){
@@ -212,7 +233,7 @@ function renderLive(){
     if(cur)a.append(delta(I,v,num(snap[I.key]),tag));
     const g=sparkSvg(s.c,col,`${I.label} 52-week trend`);if(g)a.append(g);
     const m=x=>new Date(x*1000).toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-    a.append(el('div','sparkl',m(s.t[0])+' → '+m(s.t.at(-1))+' · '+(pct>=0?'+':'')+pct.toFixed(1)+'% 52wk'));
+    a.append(el('div','sparkl',(s.span==='7d'?'last 7 days':m(s.t[0])+' → '+m(s.t.at(-1)))+' · '+(pct>=0?'+':'')+pct.toFixed(1)+'% '+(s.span||'')));
     strip.append(a);
   });
 }
@@ -319,7 +340,7 @@ async function loadReport(date){
     const r=await fetch('reports/index.json',{cache:'no-cache'});const idx=await r.json();
     const list=LIST=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
     if(!list.length)throw 0;
-    pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+' · '+(x.label||'')+' · '+(x.powder||''));o.value=x.date;pick.append(o)});
+    document.getElementById('pick-lbl').textContent='SELECT REPORT · '+list.length+' ON FILE';pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+' · '+(x.label||'')+' · '+(x.powder||''));o.value=x.date;pick.append(o)});
     const want=location.hash.slice(1),sel=list.find(x=>x.date===want)?.date||list[0].date;pick.value=sel;loadReport(sel);
     pick.addEventListener('change',e=>{location.hash=e.target.value;loadReport(e.target.value);window.scrollTo({top:0})});
   }catch(e){pick.replaceChildren(el('option',null,'—'));document.getElementById('app').replaceChildren(el('div','msg','No reports yet. The first monthly check-in lands on the 10th.'))}
