@@ -7,6 +7,7 @@
  *   GET /adsb    → adsb.lol live aircraft
  *   GET /markets → Yahoo Finance: S&P 500, Brent Crude, 30Y Treasury (^TYX)
  *   GET /news    → RSS feed proxy
+ *   GET /history → 1y weekly closes (S&P, 10Y, 30Y, 13W bill, Brent, BTC, VIX) for /mhc
  */
 
 const CORS = {
@@ -106,6 +107,36 @@ export default {
         }
       }));
       return json(results);
+    }
+
+    // ── History: 1y weekly closes for MHC trend lines ───
+    if (path === '/history') {
+      const SYMS = ['^GSPC', '^TNX', '^TYX', '^IRX', 'BZ=F', 'BTC-USD', '^VIX'];
+      const cache = caches.default;
+      const ck = new Request('https://cache.gregentic/history-v1');
+      const hit = await cache.match(ck);
+      if (hit) return hit;
+      const out = {};
+      await Promise.all(SYMS.map(async sym => {
+        try {
+          const r = await fetch(
+            `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1y&interval=1wk`,
+            { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; gregentic/4.0)' }, signal: AbortSignal.timeout(8000) }
+          );
+          if (!r.ok) throw new Error(`Yahoo HTTP ${r.status}`);
+          const d = await r.json();
+          const res = d.chart?.result?.[0];
+          const t = res?.timestamp || [];
+          const c = res?.indicators?.quote?.[0]?.close || [];
+          const pts = t.map((ts, i) => [ts, c[i]]).filter(p => p[1] != null);
+          out[sym] = { t: pts.map(p => p[0]), c: pts.map(p => +p[1].toFixed(4)), price: res?.meta?.regularMarketPrice ?? null };
+        } catch (e) {
+          out[sym] = { error: e.message };
+        }
+      }));
+      const resp = new Response(JSON.stringify(out), { headers: { ...CORS, 'Cache-Control': 'public, max-age=3600' } });
+      ctx.waitUntil(cache.put(ck, resp.clone()));
+      return resp;
     }
 
     // ── RSS News feed ────────────────────────────────────

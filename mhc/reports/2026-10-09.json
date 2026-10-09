@@ -1,0 +1,271 @@
+{
+ "board": [
+  {
+   "change": "baseline",
+   "indicator": "S&P 500 level",
+   "latest": "7,666",
+   "link": "https://fred.stlouisfed.org/series/SP500",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Forward P/E",
+   "latest": "≈19–21x",
+   "link": "https://www.yardeni.com/charts/stock-market-p-e-ratios/",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Earnings yield vs 10-yr",
+   "latest": "≈5.0% vs 5.3%",
+   "signal": "red"
+  },
+  {
+   "change": "baseline",
+   "indicator": "10-yr / 30-yr Treasury",
+   "latest": "5.28% / 5.70%",
+   "link": "https://fred.stlouisfed.org/series/T10Y2Y",
+   "signal": "red"
+  },
+  {
+   "change": "baseline",
+   "indicator": "High-yield spread",
+   "latest": "294bp",
+   "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Payrolls / unemployment",
+   "latest": "+29K / 4.2%",
+   "link": "https://fred.stlouisfed.org/series/UNRATE",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Sahm rule",
+   "latest": "Not triggered",
+   "link": "https://fred.stlouisfed.org/series/SAHMREALTIME",
+   "signal": "green"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Fed funds",
+   "latest": "3.75–4.00%",
+   "link": "https://fred.stlouisfed.org/series/DFF",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Brent crude",
+   "latest": "$102",
+   "link": "https://fred.stlouisfed.org/series/DCOILBRENTEU",
+   "signal": "red"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Forward earnings",
+   "latest": "Record highs",
+   "signal": "green"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Breadth",
+   "latest": "Narrow",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "VIX",
+   "latest": "check next run",
+   "link": "https://fred.stlouisfed.org/series/VIXCLS",
+   "signal": "yellow"
+  },
+  {
+   "change": "baseline",
+   "indicator": "Bitcoin",
+   "latest": "≈$84.8K",
+   "link": "https://fred.stlouisfed.org/series/CBBTCUSD",
+   "signal": "yellow"
+  }
+ ],
+ "changes": [
+  "First report; this sets the baseline for future month-over-month comparisons."
+ ],
+ "dataAsOf": "Oct 1–8, 2026",
+ "date": "2026-10-09",
+ "macro": [
+  {
+   "name": "Treasury yields",
+   "note": "10-yr at 5.3%. A disorderly move past 5.5% would pressure stocks and bond funds together.",
+   "signal": "red"
+  },
+  {
+   "name": "Oil & Strait of Hormuz",
+   "note": "Brent above $100 is driving inflation fears. A peace deal is the single biggest upside catalyst.",
+   "signal": "red"
+  },
+  {
+   "name": "Fed path",
+   "note": "Hiked in September. Weak jobs lowered October hike odds, but a hot CPI reopens it.",
+   "signal": "yellow"
+  },
+  {
+   "name": "Labor market",
+   "note": "+29K jobs, 4.2% unemployment, with downward revisions. The Sahm rule has not triggered.",
+   "signal": "yellow"
+  },
+  {
+   "name": "Credit",
+   "note": "Junk spreads at 294bp (widest since April); CCC spreads at highs since 2023. Heavy AI-related debt issuance.",
+   "signal": "yellow"
+  },
+  {
+   "name": "Crypto sentiment",
+   "note": "Bitcoin about a third below its peak while stocks sit near records. Watch for a breakdown as a risk-appetite warning.",
+   "signal": "yellow"
+  }
+ ],
+ "outlook": [
+  {
+   "days": 30,
+   "lean": "Choppy, headline-driven",
+   "signal": "yellow",
+   "text": "Q3 earnings season, September CPI, the late-October FOMC, US-Iran/Hormuz news and the Nov 3 midterms all land inside the window. Expect volatility within a range; a peace deal is the main upside surprise."
+  },
+  {
+   "days": 180,
+   "lean": "Sideways to modest",
+   "signal": "yellow",
+   "text": "Strong earnings growth is fighting 5%+ yields. The multiple has already compressed from ~22x toward ~19–21x. Expect flat-to-single-digit returns, with downside skew if oil keeps inflation and yields rising."
+  },
+  {
+   "days": 365,
+   "lean": "Positive, below average",
+   "signal": "green",
+   "text": "Record forward earnings carry the index higher over a year if margins hold. Valuation caps the upside. A 10–15% pullback somewhere in the year is a normal event and the likely deploy window."
+  }
+ ],
+ "overall": {
+  "headline": "Stagflation-shaped risk, not a credit blowup",
+  "label": "Yellow",
+  "signal": "yellow",
+  "text": "Stocks sit near record highs while the 10-yr Treasury touched 5.34%, its highest since 2002, and Brent holds above $100 with Hormuz disrupted. Hiring has nearly stalled. Credit is softening at the edges but not breaking. Expect a slower, choppier market, not a crash call."
+ },
+ "powder": {
+  "action": "Keep new 401k contributions flowing to Bond Plus. No transfers in either direction. The S&P 500 Equity Index is within ~1% of its high, nowhere near the 10% pullback that opens the deploy zone, and cash-like yields near 5% pay you to wait.",
+  "label": "Build — steady",
+  "note": "Check what Bond Plus actually holds. If it is an intermediate bond fund, it carries interest-rate risk: rising yields push its price down, and that's the main threat right now. A stable-value or money-market option in your plan would be closer to true dry powder. Not financial advice.",
+  "score": 1
+ },
+ "pullback": {
+  "ath": 7700,
+  "level": 7666,
+  "note": "ATH is approximate. The deploy zone starts at a 10% pullback (≈6,930), and a 20% pullback (≈6,160) is a major opportunity."
+ },
+ "sources": [
+  {
+   "title": "Investrade – Morning Preview, Oct 6, 2026",
+   "url": "https://investrade.com/?p=1598"
+  },
+  {
+   "title": "First Trust – Market Minute, October 2026",
+   "url": "https://www.ftportfolios.com/Commentary/Insights/2026/10/5/market-minute---october-2026"
+  },
+  {
+   "title": "Argaam – Wall Street first October session",
+   "url": "https://www.argaam.com/en/reports/international_market_daily_report/62203"
+  },
+  {
+   "title": "Briefs.co – Junk-bond flood is testing investors (Goldman)",
+   "url": "https://www.briefs.co/?p=22964"
+  },
+  {
+   "title": "StockHub – Goldman junk bond / AI debt warning",
+   "url": "https://stockhub.kr/en/news/news_80f45959a267"
+  },
+  {
+   "title": "investingLive – September NFP",
+   "url": "https://investinglive.com/news/us-september-non-farm-payrolls-29k-vs-90k-expected/"
+  },
+  {
+   "title": "BabyPips – Jobs report and Fed hike odds",
+   "url": "https://www.babypips.com/news/headline-us-jobs-report-september-2026-payrolls-miss-fed-hike-odds"
+  },
+  {
+   "title": "Equity Clock – Outlook, Oct 6, 2026",
+   "url": "https://equityclock.com/?p=41502"
+  },
+  {
+   "title": "Pluang – Bitcoin starts October 2026",
+   "url": "https://pluang.com/en/news-feed/prediksi-harga-bitcoin-enam-dari-delapan-oktober-naik"
+  },
+  {
+   "title": "The Standard – US-Iran peace deal report",
+   "url": "https://www.thestandard.com.hk/finance/article/339668/SP-500-Nasdaq-open-higher-as-investors-weigh-report-of-fresh-US-Iran-peace-deal"
+  }
+ ],
+ "swans": [
+  "A Hormuz escalation, or a sudden oil collapse on a peace deal (either direction moves markets)",
+  "Foreign selling of US Treasuries causing a disorderly bond market",
+  "An AI-capex debt unwind (~$600B of AI-related debt issued this year)"
+ ],
+ "tickers": [
+  {
+   "label": "S&P 500",
+   "link": "https://fred.stlouisfed.org/series/SP500",
+   "signal": "yellow",
+   "sub": "≈1% below record",
+   "value": "7,666"
+  },
+  {
+   "label": "10-yr Treasury",
+   "link": "https://fred.stlouisfed.org/series/DGS10",
+   "signal": "red",
+   "sub": "Hit 5.34% Oct 1, highest since 2002",
+   "value": "5.28%"
+  },
+  {
+   "label": "30-yr Treasury",
+   "link": "https://fred.stlouisfed.org/series/DGS30",
+   "signal": "red",
+   "sub": "24-year high",
+   "value": "5.70%"
+  },
+  {
+   "label": "Bitcoin",
+   "link": "https://fred.stlouisfed.org/series/CBBTCUSD",
+   "signal": "yellow",
+   "sub": "≈33% below Oct 2025 peak",
+   "value": "$84.8K"
+  },
+  {
+   "label": "Brent crude",
+   "link": "https://fred.stlouisfed.org/series/DCOILBRENTEU",
+   "signal": "red",
+   "sub": "Hormuz disrupted",
+   "value": "$102"
+  },
+  {
+   "label": "Fed funds",
+   "link": "https://fred.stlouisfed.org/series/DFF",
+   "signal": "yellow",
+   "sub": "77% odds of Oct hold",
+   "value": "3.75–4.00%"
+  }
+ ],
+ "triggers": {
+  "green": [
+   "US-Iran deal reopens Hormuz and Brent drops below $85",
+   "10-yr falls back below ~4.75%",
+   "Breadth broadens to small and mid caps",
+   "An S&P pullback of 10%+ with credit still calm, which opens the deploy zone"
+  ],
+  "red": [
+   "High-yield spreads above ~400bp",
+   "Unemployment at 4.5% or higher, or the Sahm rule near 0.5",
+   "A hot CPI that forces an October hike",
+   "10-yr breaks above ~5.5% in a disorderly way"
+  ]
+ }
+}

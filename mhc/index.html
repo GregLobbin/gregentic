@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>GREGENTIC // MARKET HEALTH CHECK</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d1b2e;--bg2:#132338;--bg3:#172a42;
+  --border:#1f3a5c;--accent:#29b8d8;--accent2:#22c55e;
+  --warn:#f59e0b;--danger:#ef4444;
+  --text:#e2f0ff;--dim:#7fb3d0;--muted:#4a7599;
+  --green:#22c55e;--yellow:#f59e0b;--red:#ef4444;
+  --font:'Courier New',ui-monospace,Menlo,Consolas,monospace
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+a{color:var(--accent)}
+a:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#hdr{background:var(--bg2);border-bottom:2px solid var(--accent);padding:8px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5}
+#logo{color:var(--accent);font-size:19px;font-weight:bold;letter-spacing:5px;text-decoration:none}
+#logo em{color:var(--accent2);font-style:normal}
+#logo .ver{color:var(--muted);font-size:11px;letter-spacing:2px;margin-left:8px}
+.hr{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hbtn{background:none;border:1px solid var(--border);color:var(--dim);font-family:var(--font);font-size:11px;padding:5px 12px;letter-spacing:1px;text-decoration:none}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+select{background:var(--bg3);color:var(--text);border:1px solid var(--border);font-family:var(--font);font-size:12px;padding:5px 8px}
+.wrap{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.sh{background:var(--bg3);padding:7px 12px;font-size:10px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border);border-left:3px solid var(--accent);display:flex;justify-content:space-between;align-items:center;gap:10px;text-transform:uppercase}
+.sh.green{border-left-color:var(--accent2);color:var(--accent2)}
+.sh.warn{border-left-color:var(--warn);color:var(--warn)}
+.sh small{color:var(--muted);letter-spacing:1px;font-size:10px;text-transform:none}
+.blk{display:grid;gap:0}
+.body{background:var(--bg);border:1px solid var(--border);border-top:none;padding:14px}
+.lbl{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.sig{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:var(--muted)}
+.sig.green{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sig.yellow{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+.sig.red{background:var(--red);box-shadow:0 0 6px var(--red)}
+.chip{font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border:1px solid currentColor;white-space:nowrap}
+.chip.green{color:var(--green)}.chip.yellow{color:var(--yellow)}.chip.red{color:var(--red)}.chip.acc{color:var(--accent)}
+.up{color:var(--accent2)}.dn{color:var(--danger)}.flat{color:var(--dim)}
+
+/* live strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-top:none}
+.tk{background:var(--bg);padding:10px 12px;display:grid;gap:3px;text-decoration:none;color:inherit;min-width:0}
+a.tk:hover{background:var(--bg2)}
+.tk .top{display:flex;align-items:center;gap:6px}
+.tk .ext{margin-left:auto;color:var(--muted);font-size:11px}
+a.tk:hover .ext{color:var(--accent)}
+.tk .v{font-size:19px;font-weight:bold;font-variant-numeric:tabular-nums}
+.tk .s{font-size:11px;color:var(--dim)}
+.spark{width:100%;height:34px;display:block;margin-top:2px}
+.sparkl{font-size:9px;color:var(--muted);letter-spacing:1px}
+
+/* verdict */
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.read{border-left:3px solid var(--yellow)}
+.read.green{border-left-color:var(--green)}.read.red{border-left-color:var(--red)}
+.big{font-size:20px;font-weight:bold;color:var(--text);line-height:1.25;margin:8px 0}
+.p{color:var(--dim);font-size:13px;max-width:68ch}
+.ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:10px 0 4px}
+.rung{padding:9px 4px;background:var(--bg2);border:1px solid var(--border);text-align:center;display:grid;gap:2px;min-width:0}
+.rung b{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dim)}
+.rung small{font-size:9px;color:var(--muted)}
+.rung.on{background:var(--accent);border-color:var(--accent)}
+.rung.on b,.rung.on small{color:#000}
+.axis{display:flex;justify-content:space-between;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.action{font-size:13px;color:var(--text);max-width:72ch}
+.note{font-size:12px;color:var(--dim);border-top:1px dashed var(--border);padding-top:8px;margin-top:10px;max-width:72ch}
+@media(max-width:480px){.rung b{font-size:10px}.rung small{display:none}}
+
+/* outlook */
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-top:none}
+@media(max-width:860px){.three{grid-template-columns:1fr}}
+.ol{background:var(--bg);padding:14px;display:grid;gap:6px;align-content:start}
+.ol .hz{font-size:26px;font-weight:bold;color:var(--accent)}
+.ol .hz span{font-size:10px;color:var(--muted);letter-spacing:2px;margin-left:4px}
+.ol .lean{display:flex;align-items:center;gap:8px;font-weight:bold}
+.ol .p{color:var(--dim)}
+
+/* macro */
+.watch{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));background:var(--bg);border:1px solid var(--border);border-top:none}
+.w{background:var(--bg);box-shadow:0 0 0 .5px var(--border);padding:10px 12px;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}
+.w .sig{margin-top:5px}
+.w b{font-size:13px}
+.w p{grid-column:2;font-size:12px;color:var(--dim)}
+
+/* ruler */
+.ruler svg{width:100%;height:auto;display:block}
+.ruler text{font-family:var(--font)}
+
+/* table */
+.tbl{overflow-x:auto;border:1px solid var(--border);border-top:none}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:12px}
+th{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);font-weight:normal}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+td.n{font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--bg2)}
+td a{color:var(--text);text-decoration:none;border-bottom:1px dotted var(--muted)}
+td a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+ul.l{padding-left:16px;display:grid;gap:5px;font-size:12px;color:var(--text)}
+ul.l li::marker{color:var(--accent)}
+.src{columns:2 300px;column-gap:24px;font-size:12px;padding-left:18px}
+.src li{break-inside:avoid;margin-bottom:3px}
+.foot{font-size:10px;letter-spacing:1px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+.msg{padding:30px 14px;text-align:center;color:var(--dim);border:1px dashed var(--border)}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <a id="logo" href="/">GREG<em>ENTIC</em><span class="ver">// MARKET HEALTH CHECK</span></a>
+  <div class="hr">
+    <label class="lbl" for="pick">REPORT</label>
+    <select id="pick"><option>Loading…</option></select>
+    <a class="hbtn" href="/">◀ COP</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="blk">
+    <div class="sh green"><span>LIVE // 52-WEEK TRENDS</span><small id="live-st">acquiring…</small></div>
+    <div class="strip" id="strip"></div>
+  </section>
+  <div id="app"><div class="msg">Acquiring report…</div></div>
+  <div class="foot"><span>GREGENTIC.COM // MHC v1.0</span><span>Data read, not financial advice. Report values are approximate as of each report date.</span></div>
+</div>
+
+<script>
+const WORKER_URL='https://gregentic-data.lobbingr.workers.dev';
+const LIVE=[
+  {sym:'^GSPC',label:'S&P 500',fmt:v=>v.toLocaleString('en-US',{maximumFractionDigits:0}),yh:'%5EGSPC'},
+  {sym:'^TNX',label:'10Y TREAS',fmt:v=>v.toFixed(2)+'%',yh:'%5ETNX',inv:true},
+  {sym:'^TYX',label:'30Y TREAS',fmt:v=>v.toFixed(2)+'%',yh:'%5ETYX',inv:true},
+  {sym:'^IRX',label:'13W T-BILL (CASH)',fmt:v=>v.toFixed(2)+'%',yh:'%5EIRX'},
+  {sym:'BZ=F',label:'BRENT',fmt:v=>'$'+v.toFixed(2),yh:'BZ%3DF',inv:true},
+  {sym:'BTC-USD',label:'BTC/USD',fmt:v=>'$'+Math.round(v).toLocaleString(),yh:'BTC-USD'},
+  {sym:'^VIX',label:'VIX',fmt:v=>v.toFixed(1),yh:'%5EVIX',inv:true}
+];
+const LADDER=[{s:-2,n:'Deploy+',d:'aggressive'},{s:-1,n:'Deploy',d:'gradual'},{s:0,n:'Hold',d:'no change'},{s:1,n:'Build',d:'steady'},{s:2,n:'Build+',d:'aggressive'}];
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const sig=s=>el('span','sig '+(s||''));
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS='http://www.w3.org/2000/svg';
+const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+function block(title,cls,...kids){const s=el('section','blk');const h=el('div','sh '+(cls||''));h.append(el('span',null,title));s.append(h,...kids);return s}
+
+function sparkSvg(vals,color,label){
+  if(!vals||vals.length<2)return null;
+  const W=150,H=34,P=3,lo=Math.min(...vals),hi=Math.max(...vals),rg=hi-lo||1;
+  const X=i=>P+i*(W-2*P)/(vals.length-1),Y=v=>H-P-(v-lo)/rg*(H-2*P);
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('preserveAspectRatio','none');svg.setAttribute('class','spark');svg.setAttribute('role','img');svg.setAttribute('aria-label',label||'trend');
+  const pts=vals.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const mk=(t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);svg.append(n)};
+  mk('polygon',{points:`${X(0)},${H} ${pts} ${X(vals.length-1)},${H}`,fill:color,opacity:.12});
+  mk('polyline',{points:pts,fill:'none',stroke:color,'stroke-width':1.5,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round'});
+  mk('circle',{cx:X(vals.length-1),cy:Y(vals.at(-1)),r:2.5,fill:color});
+  return svg;
+}
+
+// ── LIVE STRIP (worker /history) with fallback to report tickers ──
+let reportTickers=null,liveOk=false;
+async function loadLive(){
+  const st=document.getElementById('live-st');
+  try{
+    const r=await fetch(`${WORKER_URL}/history`);
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const strip=document.getElementById('strip');strip.replaceChildren();
+    let n=0;
+    LIVE.forEach(L=>{
+      const s=d[L.sym];if(!s||s.error||!s.c?.length)return;n++;
+      const vals=s.c,cur=s.price??vals.at(-1),first=vals[0];
+      const pct=(cur-first)/Math.abs(first)*100;
+      const good=L.inv?pct<0:pct>0;
+      const col=Math.abs(pct)<0.5?css('--dim'):good?css('--green'):css('--red');
+      const a=el('a','tk');a.href=`https://finance.yahoo.com/quote/${L.yh}/`;a.target='_blank';a.rel='noopener';a.title='Open on Yahoo Finance';
+      const top=el('div','top');top.append(el('span','lbl',L.label),el('span','ext','↗'));
+      const ch=el('div','s');const sp=el('span',pct>0?'up':pct<0?'dn':'flat',(pct>0?'▲':pct<0?'▼':'–')+Math.abs(pct).toFixed(1)+'%');ch.append(sp,document.createTextNode(' 52 wk'));
+      a.append(top,el('div','v',L.fmt(cur)),ch);
+      const g=sparkSvg(vals,col,`${L.label} 52-week trend`);if(g)a.append(g);
+      const d0=new Date(s.t[0]*1000),d1=new Date(s.t.at(-1)*1000),m=x=>x.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+      a.append(el('div','sparkl',m(d0)+' → '+m(d1)));
+      strip.append(a);
+    });
+    if(!n)throw new Error('no series');
+    liveOk=true;st.textContent='live · weekly closes · '+new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    st.textContent='live feed unavailable · showing report values';
+    renderReportStrip();
+  }
+}
+function renderReportStrip(){
+  if(liveOk||!reportTickers)return;
+  const strip=document.getElementById('strip');strip.replaceChildren();
+  reportTickers.forEach(t=>{
+    const a=el(t.link?'a':'div','tk');if(t.link){a.href=t.link;a.target='_blank';a.rel='noopener'}
+    const top=el('div','top');top.append(sig(t.signal),el('span','lbl',t.label));if(t.link)top.append(el('span','ext','↗'));
+    a.append(top,el('div','v',t.value),el('div','s',t.sub||''));
+    const vals=(t.trend||[]).map(p=>p.v).filter(v=>typeof v==='number');
+    const g=sparkSvg(vals,css('--'+(t.signal||'accent'))||css('--accent'));if(g){a.append(g,el('div','sparkl',t.trend[0].m+' → '+t.trend.at(-1).m))}
+    strip.append(a);
+  });
+}
+
+// ── PULLBACK RULER ──
+function ruler(p){
+  const W=800,H=96,pad=40,minPct=-25,x=v=>pad+(v-minPct)/(0-minPct)*(W-2*pad);
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const dd=(p.level/p.ath-1)*100;svg.setAttribute('role','img');svg.setAttribute('aria-label',`S&P 500 ${dd.toFixed(1)}% from all-time high`);
+  const add=(t,a,x2)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(x2!=null)n.textContent=x2;svg.append(n)};
+  const G=css('--green'),Y=css('--yellow'),M=css('--muted'),D=css('--dim'),A=css('--accent'),B=css('--border');
+  add('rect',{x:x(-25),y:34,width:x(-20)-x(-25),height:14,fill:G,opacity:.55});
+  add('rect',{x:x(-20),y:34,width:x(-10)-x(-20),height:14,fill:G,opacity:.25});
+  add('rect',{x:x(-10),y:34,width:x(-5)-x(-10),height:14,fill:Y,opacity:.18});
+  add('rect',{x:x(-5),y:34,width:x(0)-x(-5),height:14,fill:css('--bg3')});
+  [-25,-20,-15,-10,-5,0].forEach(t=>{add('line',{x1:x(t),x2:x(t),y1:30,y2:52,stroke:B});add('text',{x:x(t),y:68,'text-anchor':'middle','font-size':12,fill:D},t===0?'ATH':t+'%');if(t<0)add('text',{x:x(t),y:84,'text-anchor':'middle','font-size':11,fill:M},Math.round(p.ath*(1+t/100)).toLocaleString())});
+  add('text',{x:(x(-25)+x(-20))/2,y:24,'text-anchor':'middle','font-size':11,fill:G},'DEPLOY+');
+  add('text',{x:(x(-20)+x(-10))/2,y:24,'text-anchor':'middle','font-size':11,fill:G},'DEPLOY ZONE');
+  const mx=x(Math.max(minPct,Math.min(0,dd)));
+  add('line',{x1:mx,x2:mx,y1:26,y2:56,stroke:A,'stroke-width':3});add('circle',{cx:mx,cy:41,r:6,fill:A});
+  add('text',{x:Math.min(mx,W-pad-4),y:14,'text-anchor':'end','font-size':12,fill:A},`NOW ${p.level.toLocaleString()} (${dd.toFixed(1)}%)`);
+  return svg;
+}
+
+// ── REPORT ──
+function render(r){
+  reportTickers=r.tickers||[];renderReportStrip();
+  const app=document.getElementById('app');app.replaceChildren();
+  const box=el('div');box.style.cssText='display:grid;gap:16px';
+
+  const two=el('div','two');
+  const rd=el('div','body read '+(r.overall?.signal||''));rd.style.borderTop='1px solid var(--border)';
+  const h=el('div');h.style.cssText='display:flex;gap:10px;align-items:center;flex-wrap:wrap';h.append(el('span','lbl','OVERALL READ'),el('span','chip '+(r.overall?.signal||''),r.overall?.label||''),el('span','lbl','· data '+(r.dataAsOf||fmtDate(r.date))));
+  rd.append(h,el('div','big',r.overall?.headline||''),el('p','p',r.overall?.text||''));
+  const dp=el('div','body');dp.style.borderTop='1px solid var(--border)';
+  const dh=el('div');dh.style.cssText='display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap';dh.append(el('span','lbl','DRY POWDER CALL'),el('span','chip acc',r.powder?.label||''));
+  const lad=el('div','ladder');LADDER.forEach(x=>{const g=el('div','rung'+(x.s===r.powder?.score?' on':''));g.append(el('b',null,x.n),el('small',null,x.d));lad.append(g)});
+  const ax=el('div','axis');ax.append(el('span',null,'◀ cash into S&P fund'),el('span',null,'add to Bond Plus ▶'));
+  dp.append(dh,lad,ax,el('p','action',r.powder?.action||''));if(r.powder?.note)dp.append(el('p','note',r.powder.note));
+  two.append(rd,dp);box.append(two);
+
+  const th=el('div','three');(r.outlook||[]).forEach(o=>{const c=el('div','ol');const hz=el('div','hz',String(o.days));hz.append(el('span',null,'DAYS'));const ln=el('div','lean');ln.append(sig(o.signal),el('span',null,o.lean));c.append(hz,ln,el('p','p',o.text));th.append(c)});
+  box.append(block('OUTLOOK // 30 · 180 · 365 DAYS','',th));
+
+  const w=el('div','watch');(r.macro||[]).forEach(m=>{const c=el('div','w');c.append(sig(m.signal),el('b',null,m.name),el('p',null,m.note));w.append(c)});
+  box.append(block('MACRO FACTORS TO WATCH','warn',w));
+
+  if(r.pullback?.ath&&r.pullback?.level){const b=el('div','body ruler');b.append(ruler(r.pullback));if(r.pullback.note)b.append(el('p','note',r.pullback.note));box.append(block('S&P 500 PULLBACK RULER','green',b))}
+
+  const tw=el('div','tbl'),tb=el('table'),thd=el('thead'),hr=el('tr');['Indicator','Latest','vs last report','Signal'].forEach(x=>hr.append(el('th',null,x)));thd.append(hr);
+  const bd=el('tbody');(r.board||[]).forEach(b=>{const tr=el('tr');const ic=el('td');if(b.link){const a=el('a',null,b.indicator+' ↗');a.href=b.link;a.target='_blank';a.rel='noopener';ic.append(a)}else ic.textContent=b.indicator;const sc=el('td');sc.append(el('span','chip '+b.signal,b.signal));tr.append(ic,el('td','n',b.latest),el('td','n',b.change||'—'),sc);bd.append(tr)});
+  tb.append(thd,bd);tw.append(tb);box.append(block('FULL BOARD','',tw));
+
+  const lists=el('div','three');
+  const L=(t,arr)=>{const c=el('div','ol');const u=el('ul','l');(arr||[]).forEach(x=>u.append(el('li',null,x)));c.append(el('span','lbl',t),u);return c};
+  lists.append(L('WHAT CHANGED',r.changes),L('TURNS RED IF',r.triggers?.red),L('TURNS GREEN IF',r.triggers?.green));
+  box.append(block('CHANGES & TRIGGERS','',lists));
+  if(r.swans?.length){const b=el('div','body');const u=el('ul','l');r.swans.forEach(x=>u.append(el('li',null,x)));b.append(u);box.append(block('BLACK SWAN SCAN','warn',b))}
+  if(r.sources?.length){const b=el('div','body');const u=el('ol','src');r.sources.forEach(s=>{const li=el('li');const a=el('a',null,s.title);a.href=s.url;a.target='_blank';a.rel='noopener';li.append(a);u.append(li)});b.append(u);box.append(block('SOURCES','',b))}
+  app.append(box);
+}
+
+async function loadReport(date){
+  try{const r=await fetch(`reports/${date}.json`,{cache:'no-cache'});if(!r.ok)throw 0;render(await r.json())}
+  catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
+}
+(async()=>{
+  loadLive();
+  const pick=document.getElementById('pick');
+  try{
+    const r=await fetch('reports/index.json',{cache:'no-cache'});const idx=await r.json();
+    const list=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    if(!list.length)throw 0;
+    pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+' · '+(x.label||'')+' · '+(x.powder||''));o.value=x.date;pick.append(o)});
+    const want=location.hash.slice(1),sel=list.find(x=>x.date===want)?.date||list[0].date;pick.value=sel;loadReport(sel);
+    pick.addEventListener('change',e=>{location.hash=e.target.value;loadReport(e.target.value);window.scrollTo({top:0})});
+  }catch(e){pick.replaceChildren(el('option',null,'—'));document.getElementById('app').replaceChildren(el('div','msg','No reports yet. The first monthly check-in lands on the 10th.'))}
+})();
+</script>
+</body>
+</html>

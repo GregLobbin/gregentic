@@ -180,7 +180,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh
     <div class="sh"><span>METEOROLOGICAL</span><div class="dot" id="wx-dot"></div></div>
     <div id="wx-body"><div class="msg">Acquiring…</div></div>
     <div id="fc"></div>
-    <div class="sh green"><span>MARKETS</span><div class="dot" id="mkt-dot"></div></div>
+    <div class="sh green"><span>MARKETS</span><span style="display:flex;align-items:center;gap:8px"><a href="/mhc/" title="Monthly Market Health Check" style="color:var(--accent2);text-decoration:none;border:1px solid var(--accent2);padding:1px 6px;font-size:9px;letter-spacing:2px">MHC ▸</a><div class="dot" id="mkt-dot"></div></span></div>
     <div id="mkt-body">
       <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://finance.yahoo.com/quote/%5EGSPC/','_blank')"><span class="mkt-sym">S&amp;P 500</span><span class="mkt-price" id="t-sp">--</span><span class="mkt-chg" id="t-sp-c"></span><span id="spark-sp"></span></div>
       <div class="mkt-row" style="cursor:pointer" onclick="window.open('https://finance.yahoo.com/quote/BZ%3DF/','_blank')"><span class="mkt-sym">BRENT</span><span class="mkt-price" id="t-brent">--</span><span class="mkt-chg" id="t-brent-c"></span><span id="spark-brent"></span></div>
