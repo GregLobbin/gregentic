@@ -113,7 +113,7 @@ export default {
     if (path === '/history') {
       const SYMS = ['^GSPC', '^TNX', '^TYX', '^IRX', 'BZ=F', 'BTC-USD', '^VIX'];
       const cache = caches.default;
-      const ck = new Request('https://cache.gregentic/history-v1');
+      const ck = new Request('https://cache.gregentic/history-v2');
       const hit = await cache.match(ck);
       if (hit) return hit;
       const out = {};
@@ -134,7 +134,7 @@ export default {
           out[sym] = { error: e.message };
         }
       }));
-      const resp = new Response(JSON.stringify(out), { headers: { ...CORS, 'Cache-Control': 'public, max-age=3600' } });
+      const resp = new Response(JSON.stringify(out), { headers: { ...CORS, 'Cache-Control': 'public, max-age=300' } });
       ctx.waitUntil(cache.put(ck, resp.clone()));
       return resp;
     }

@@ -63,6 +63,10 @@ a.tk:hover .ext{color:var(--accent)}
 .rh-r{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
 .rh-c{display:grid;gap:4px}
 .rh-chg{font-size:11px;color:var(--warn)}
+.lv-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.rf{background:none;border:1px solid var(--accent2);color:var(--accent2);font-family:var(--font);font-size:9px;letter-spacing:2px;padding:2px 8px;cursor:pointer}
+.rf:hover{background:var(--accent2);color:#000}
+.rf[disabled]{opacity:.5;cursor:wait}
 /* verdict */
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px}
 @media(max-width:860px){.two{grid-template-columns:1fr}}
@@ -131,7 +135,7 @@ ul.l li::marker{color:var(--accent)}
 
 <div class="wrap">
   <section class="blk">
-    <div class="sh green"><span>● LIVE // NOW</span><small id="live-st">acquiring…</small></div>
+    <div class="sh green"><span>● LIVE // NOW</span><span class="lv-r"><small id="live-st">acquiring…</small><button id="lv-btn" class="rf" type="button" title="Refresh live data">⟳ REFRESH</button></span></div>
     <div class="strip" id="strip"></div>
   </section>
   <section class="blk" id="rpt-sec" hidden>
@@ -186,7 +190,9 @@ function delta(I,now,then,tag){
   d.append(el('span',cls,arrow+txt),document.createTextNode(' '+tag));return d;
 }
 let live={},liveSeries={},cur=null,prev=null;
+let liveBusy=false,liveAt=0;
 async function loadLive(){
+  if(liveBusy)return;liveBusy=true;const btn=document.getElementById('lv-btn');btn.disabled=true;
   const st=document.getElementById('live-st');
   let full=false;
   try{
@@ -216,7 +222,8 @@ async function loadLive(){
     ]);
   }
   const n=Object.keys(live).length,t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-  st.textContent=!n?'live feed offline':full?'updated '+t+' · 52-wk weekly closes':`updated ${t} · partial feed (${n} of ${IND.length})`;
+  st.textContent=!n?'live feed offline':(full?'updated '+t+' · 52-wk weekly closes':`updated ${t} · partial feed (${n} of ${IND.length})`)+' · auto-refresh 5 min';
+  liveAt=Date.now();liveBusy=false;btn.disabled=false;
   renderLive();
 }
 function renderLive(){
@@ -333,6 +340,10 @@ async function loadReport(date){
     renderReportHead();renderLive();render(cur);
   }catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
 }
+const LIVE_MS=5*60*1000;
+document.getElementById('lv-btn').addEventListener('click',()=>loadLive());
+setInterval(()=>{if(document.visibilityState==='visible')loadLive()},LIVE_MS);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-liveAt>LIVE_MS)loadLive()});
 (async()=>{
   loadLive();
   const pick=document.getElementById('pick');
