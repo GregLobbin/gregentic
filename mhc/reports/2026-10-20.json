@@ -1,0 +1,119 @@
+{
+ "date": "2026-10-20",
+ "dataAsOf": "Oct 14–19, 2026",
+ "overall": {
+  "signal": "yellow",
+  "label": "Yellow",
+  "headline": "Oil and inflation heat up; stocks hold near highs",
+  "text": "Brent is near $110 after Houthi strikes on Saudi oil sites. Inflation came in hot, and markets now expect a Fed hike in December. Stocks are only 1.6% off their record. Junk-bond spreads are widening, but not breaking."
+ },
+ "powder": {
+  "score": 1,
+  "label": "Build — steady",
+  "action": "Keep new contributions going to Bond Plus. Make no transfers; the S&P fund is only 1.6% below its high, far from the 10% deploy zone (~7,040).",
+  "note": "Cash now earns about 4.1%, only ~0.4 pts above 3.7% inflation, so dry powder is barely holding value. If Bond Plus holds longer bonds, rising yields can cut its price. Not financial advice."
+ },
+ "snapshot": {
+  "sp500": {"v": 7690.73, "signal": "yellow", "note": "Oct 19; 1.6% below Oct 6 record"},
+  "y10": {"v": 5.15, "signal": "red", "note": "Oct 19; eased from 5.33% CPI-day spike"},
+  "y30": {"v": 5.43, "signal": "red", "note": "Oct 15; down from 5.70% last report"},
+  "bill13": {"v": 4.08, "signal": "yellow", "note": "Oct 16; only ~0.4 pts above CPI"},
+  "brent": {"v": 109.55, "signal": "red", "note": "Oct 19 Dec futures; Saudi attacks"},
+  "btc": {"v": 81978, "signal": "yellow", "note": "Oct 18; ≈35% below Oct 2025 peak"},
+  "vix": {"v": 18.44, "signal": "yellow", "note": "Oct 19; hit ~20 Oct 16"}
+ },
+ "outlook": [
+  {"days": 30, "lean": "Choppy, oil-driven", "signal": "yellow", "text": "Earnings, the Oct 28 Fed meeting, Nov 3 midterms and Gulf attacks all land this month. Expect swings inside a range, not a trend."},
+  {"days": 180, "lean": "Sideways to modest", "signal": "yellow", "text": "Strong earnings are fighting 5%+ yields and $110 oil. Expect flat to single-digit returns, with downside risk if inflation keeps rising."},
+  {"days": 365, "lean": "Positive, below average", "signal": "green", "text": "Record profits should lift stocks over a year if they hold. A 10–15% pullback along the way is normal and the likely buying window."}
+ ],
+ "street": {
+  "consensus": {
+   "equities": "Neutral",
+   "treasuries": "Short end favored",
+   "note": "Most houses are cautious on stocks near highs and like short Treasuries. Several now see value in longer bonds at 5%+ yields."
+  },
+  "houses": [
+   {"firm": "BlackRock Investment Institute", "date": "2026-10-12", "equities": "Cut US to neutral", "treasuries": "Short-term overweight; long-term neutral", "change": "Dropped its long-held US stock overweight to fund a move into short-term Treasuries.", "fit": "green", "fitLabel": "Supports Build", "fitNote": "Trimming US stocks for short Treasuries mirrors sending contributions to Bond Plus.", "link": "https://247wallst.com/investing/2026/10/13/blackrock-says-the-market-has-the-fed-wrong-its-buying-treasuries-with-yields-above-5/"},
+   {"firm": "PIMCO", "date": "2026-10-12", "equities": "Weaker if 10-yr hits 5.5%+", "treasuries": "Prefer 5–7 yr; 6% 10-yr possible", "change": "CIO Dan Ivascyn warned the 10-yr could reach 6%; PIMCO still likes intermediate bonds for income.", "fit": "yellow", "fitLabel": "Mixed", "fitNote": "Supports waiting, but a 6% 10-yr would also hurt Bond Plus if it holds longer bonds.", "link": "https://finance.yahoo.com/markets/stocks/articles/pimco-warns-10-treasury-yield-155045650.html"},
+   {"firm": "Morgan Stanley", "date": "2026-10-19", "equities": "Bull market; 8,000 target", "treasuries": "Falling yields are the key", "change": "Mike Wilson calls this a late-stage correction inside a bull market and says get ready to buy.", "fit": "red", "fitLabel": "Leans Deploy", "fitNote": "Argues the dip is a chance to add to the S&P fund, not to keep building cash.", "link": "https://www.bloomberg.com/news/articles/2026-10-19/michael-wilson-de-morgan-stanley-aconseja-prepararse-para-comprar-acciones"},
+   {"firm": "Schwab", "date": "2026-10-16", "equities": "Stay invested", "treasuries": "Rise is mostly constructive", "change": "Sees higher rates as a sign of firmer growth and advises sticking to long-term allocations.", "fit": "red", "fitLabel": "Leans Hold", "fitNote": "Suggests keeping the normal S&P fund mix rather than tilting new money to Bond Plus.", "link": "https://www.schwab.com/learn/story/stock-market-outlook"},
+   {"firm": "J.P. Morgan Asset Management", "date": "2026-10-19", "equities": "7.5%/yr long-term", "treasuries": "4.6%/yr intermediate", "change": "Raised its 10–15 year US large-cap forecast to 7.5% from 6.7%.", "fit": "yellow", "fitLabel": "Mixed", "fitNote": "Long-run math still favors the S&P fund over Bond Plus, but says nothing about timing.", "link": "https://www.stocktitan.net/news/JPM/j-p-morgan-releases-2027-long-term-capital-market-assumptions-may62p4nqbmy.html"}
+  ],
+  "voices": [
+   {"who": "Jamie Dimon, CEO, JPMorgan Chase", "date": "2026-10-13", "quote": "We just don't know when it's going to stop.", "context": "On the strong economy, while warning of sticky inflation, high asset prices and rising rates.", "signal": "yellow", "link": "https://www.fool.com/investing/2026/10/16/jpmorganchase-ceo-jamie-dimon-warns-that-inflation/"},
+   {"who": "Dan Ivascyn, CIO, PIMCO", "date": "2026-10-12", "quote": "You can certainly get there.", "context": "On whether the 10-yr Treasury yield could reach 6%, a 26-year high.", "signal": "red", "link": "https://finance.yahoo.com/markets/stocks/articles/pimco-warns-10-treasury-yield-155045650.html"}
+  ],
+  "note": "These views are context, not a vote. Wall Street is often wrong together, and these views never change the dry-powder call on their own."
+ },
+ "macro": [
+  {"name": "Oil & Middle East", "signal": "red", "note": "Brent near $110 as Houthis hit Saudi oil sites and Iran attacks tankers in Hormuz."},
+  {"name": "Inflation & Fed", "signal": "red", "note": "CPI 3.7% (core 2.6%), both above forecast; a December hike is now ~89% priced."},
+  {"name": "Treasury yields", "signal": "yellow", "note": "10-yr spiked to 5.33% on CPI day, then eased to ~5.15%."},
+  {"name": "Labor market", "signal": "yellow", "note": "+29K jobs and 4.2% unemployment in September; the Sahm rule reads 0.00."},
+  {"name": "Credit", "signal": "yellow", "note": "Junk spreads widened to 331bp as AI-linked debt sold off; still far from 400bp stress."},
+  {"name": "Crypto sentiment", "signal": "yellow", "note": "Bitcoin near $82K, about 35% below its peak, as risk appetite stays weak."}
+ ],
+ "pullback": {
+  "ath": 7818.93,
+  "level": 7690.73,
+  "note": "Record close was Oct 6. The deploy zone starts at a 10% pullback (≈7,040); a 20% pullback (≈6,255) is a major opportunity."
+ },
+ "board": [
+  {"indicator": "S&P 500 level", "latest": "7,691 (−1.6% from record)", "change": "+0.3% (from 7,666); new record 7,819 on Oct 6", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/SP500"},
+  {"indicator": "Forward P/E", "latest": "19.0x (FactSet)", "change": "Narrowed from ≈19–21x estimate", "signal": "yellow", "link": "https://insight.factset.com/sp-500-earnings-season-update-october-16-2026"},
+  {"indicator": "Q3 earnings", "latest": "+29% growth; 84% beat (9% reported)", "change": "New: season just started", "signal": "green", "link": "https://insight.factset.com/sp-500-earnings-season-update-october-16-2026"},
+  {"indicator": "10-yr / 30-yr Treasury", "latest": "5.15% / 5.43%", "change": "−0.13 pts / −0.27 pts", "signal": "red", "link": "https://fred.stlouisfed.org/series/DGS10"},
+  {"indicator": "13-wk T-bill vs CPI", "latest": "4.08% vs 3.7%", "change": "New: cash beats inflation by ~0.4 pts", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/DTB3"},
+  {"indicator": "CPI (headline / core)", "latest": "3.7% / 2.6%", "change": "Up from 3.4% / 2.4%", "signal": "red", "link": "https://fred.stlouisfed.org/series/CPIAUCSL"},
+  {"indicator": "High-yield / CCC spread", "latest": "331bp / 1,297bp", "change": "HY +37bp (from 294bp)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"},
+  {"indicator": "Payrolls / unemployment", "latest": "+29K / 4.2%", "change": "No new data (next Nov 6)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/UNRATE"},
+  {"indicator": "Sahm rule", "latest": "0.00 (not triggered)", "change": "Unchanged", "signal": "green", "link": "https://fred.stlouisfed.org/series/SAHMREALTIME"},
+  {"indicator": "Fed funds / odds", "latest": "3.75–4.00%; Oct hold ~80%, Dec hike ~89%", "change": "December hike now expected", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/DFF"},
+  {"indicator": "Brent crude", "latest": "$109.55 (Dec futures)", "change": "+$7 (from $102)", "signal": "red", "link": "https://fred.stlouisfed.org/series/DCOILBRENTEU"},
+  {"indicator": "Breadth", "latest": "Narrow; chips swung the index", "change": "Unchanged", "signal": "yellow"},
+  {"indicator": "VIX", "latest": "18.4", "change": "First reading (hit 20.0 Oct 16)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/VIXCLS"},
+  {"indicator": "Bitcoin", "latest": "≈$82.0K", "change": "−3% (from $84.8K)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/CBBTCUSD"}
+ ],
+ "changes": [
+  "Brent rose about $7 to ~$110 after Houthi strikes on Saudi airports and Aramco.",
+  "September CPI hit 3.7%, above forecast; markets now price a December Fed hike.",
+  "S&P set a record 7,819 on Oct 6, then chip stocks fell 11% in one week.",
+  "Junk-bond spreads widened 37bp to 331bp as AI-linked debt sold off."
+ ],
+ "triggers": {
+  "red": [
+   "High-yield spreads above ~400bp",
+   "10-yr breaks above 5.5% in a disorderly way",
+   "Unemployment at 4.5%+ or Sahm rule near 0.5"
+  ],
+  "green": [
+   "S&P falls 10%+ (below ~7,040) with credit calm",
+   "US-Iran deal reopens Hormuz; Brent below $85",
+   "10-yr falls back below ~4.75%"
+  ]
+ },
+ "swans": [
+  "Wider Gulf war: Houthi-Saudi strikes plus Iran's tanker attacks shut Hormuz",
+  "AI debt unwind: Oracle, CoreWeave debt stress spreads to credit markets",
+  "Disorderly Treasury selloff pushes the 10-yr toward 6%"
+ ],
+ "sources": [
+  {"title": "FRED – S&P 500 (SP500)", "url": "https://fred.stlouisfed.org/series/SP500"},
+  {"title": "FRED – 10-yr, 30-yr, 3-mo bill, VIX, HY & CCC spreads, Fed funds, Bitcoin", "url": "https://fred.stlouisfed.org/series/DGS10"},
+  {"title": "CappNotes – Closing Look, Oct 19, 2026", "url": "https://cappnotes.substack.com/p/closing-look-monday-october-19-2026"},
+  {"title": "MetaTradingClub – S&P 500 record close, Oct 6, 2026", "url": "https://www.metatradingclub.com/2026/10/06/"},
+  {"title": "FactSet – Earnings Season Update, Oct 16, 2026", "url": "https://insight.factset.com/sp-500-earnings-season-update-october-16-2026"},
+  {"title": "Advisor Perspectives – September 2026 CPI", "url": "https://www.advisorperspectives.com/dshort/updates/2026/10/14/cpi-consumer-price-index-inflation-september-2026"},
+  {"title": "Forbes – What to look for from the Fed's October meeting", "url": "https://www.forbes.com/sites/simonmoore/2026/10/19/what-to-look-for-from-the-feds-october-meeting/"},
+  {"title": "Weekly Catalysts – WC-10/18", "url": "https://weeklycatalysts.substack.com/p/wc-1018-expect-a-bad-week"},
+  {"title": "Fortune – Houthi attacks on Saudi Arabia", "url": "https://fortune.com/2026/10/15/houthi-saudi-attacks-unprecedented-us-response-ignore-midterms/"},
+  {"title": "CNBC – Brent tops $109 after Houthi attacks", "url": "https://www.cnbc.com/2026/10/18/oil-price-today-ukraine-russia-iran-strait-hormuz.html"},
+  {"title": "24/7 Wall St. – BlackRock buys Treasuries above 5%", "url": "https://247wallst.com/investing/2026/10/13/blackrock-says-the-market-has-the-fed-wrong-its-buying-treasuries-with-yields-above-5/"},
+  {"title": "Yahoo Finance – PIMCO warns 10-yr could hit 6%", "url": "https://finance.yahoo.com/markets/stocks/articles/pimco-warns-10-treasury-yield-155045650.html"},
+  {"title": "TradingKey – Morgan Stanley: correction nearing an end", "url": "https://www.tradingkey.com/analysis/stocks/us-stocks/262223846-sp500-forecast-morgan-stanley-correction-ending-7500-focus-tradingkey"},
+  {"title": "Schwab – Market Perspective, Oct 16, 2026", "url": "https://www.schwab.com/learn/story/stock-market-outlook"},
+  {"title": "Stock Titan – J.P. Morgan 2027 Long-Term Capital Market Assumptions", "url": "https://www.stocktitan.net/news/JPM/j-p-morgan-releases-2027-long-term-capital-market-assumptions-may62p4nqbmy.html"},
+  {"title": "Motley Fool – Jamie Dimon warnings, Oct 16, 2026", "url": "https://www.fool.com/investing/2026/10/16/jpmorganchase-ceo-jamie-dimon-warns-that-inflation/"}
+ ]
+}
