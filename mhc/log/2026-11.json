@@ -1,0 +1,138 @@
+{
+ "month": "2026-11",
+ "days": [
+  {
+   "date": "2026-11-02",
+   "sp500": 7541.4,
+   "y10": 4.91,
+   "y30": 5.28,
+   "bill13": 4.03,
+   "vix": 21.15,
+   "hy": 343,
+   "brent": 104.77,
+   "btc": 77062
+  },
+  {
+   "date": "2026-11-03",
+   "sp500": 7568.92,
+   "y10": 4.95,
+   "y30": 5.32,
+   "bill13": 4.03,
+   "vix": 20.83,
+   "hy": 340,
+   "brent": 103.6,
+   "btc": 76934
+  },
+  {
+   "date": "2026-11-04",
+   "sp500": 7688.62,
+   "y10": 4.9,
+   "y30": 5.28,
+   "bill13": 4.03,
+   "vix": 16.61,
+   "hy": 332,
+   "brent": null,
+   "btc": 80420
+  },
+  {
+   "date": "2026-11-05",
+   "sp500": 7353.73,
+   "y10": 4.84,
+   "y30": 5.25,
+   "bill13": 4.0,
+   "vix": 28.18,
+   "hy": 348,
+   "brent": 98.29,
+   "btc": 76153
+  },
+  {
+   "date": "2026-11-06",
+   "sp500": 7376.86,
+   "y10": 4.86,
+   "y30": 5.26,
+   "bill13": 4.01,
+   "vix": 25.64,
+   "hy": 342,
+   "brent": null,
+   "btc": 75860
+  },
+  {
+   "date": "2026-11-09",
+   "sp500": 7549.94,
+   "y10": 4.88,
+   "y30": 5.26,
+   "bill13": 4.06,
+   "vix": 19.92,
+   "hy": 334,
+   "brent": 92.57,
+   "btc": 75091
+  },
+  {
+   "date": "2026-11-10",
+   "sp500": 7520.93,
+   "y10": 4.98,
+   "y30": 5.35,
+   "bill13": null,
+   "vix": 19.46,
+   "hy": null,
+   "brent": null,
+   "btc": 73303
+  },
+  {
+   "date": "2026-11-11",
+   "sp500": 7619.38,
+   "y10": null,
+   "y30": null,
+   "bill13": null,
+   "vix": 17.49,
+   "hy": 330,
+   "brent": null,
+   "btc": 73777
+  },
+  {
+   "date": "2026-11-12",
+   "sp500": 7592.4,
+   "y10": 5.1,
+   "y30": null,
+   "bill13": null,
+   "vix": 18.7,
+   "hy": 320,
+   "brent": 95.82,
+   "btc": 70822
+  },
+  {
+   "date": "2026-11-13",
+   "sp500": null,
+   "y10": null,
+   "y30": null,
+   "bill13": null,
+   "vix": null,
+   "hy": null,
+   "brent": 95.84,
+   "btc": 68178
+  }
+ ],
+ "notes": [
+  {
+   "date": "2026-11-05",
+   "text": "AI-chip stock selloff: S&P −4.4%, worst day since 2025; VIX 28.2, 10-yr −0.06 pts, junk spreads +16bp.",
+   "source": "https://www.cnbc.com/2026/11/05/stock-market-selloff-ai-fears.html"
+  },
+  {
+   "date": "2026-11-09",
+   "text": "Trump signals restraint on Iran: Brent −5.9% to $92.57, S&P +2.3%.",
+   "swan": "Wider Gulf war",
+   "source": "https://live.euronext.com/en/financial-news/oil-down-more-7-barrel-post-settlement-trade-trump-signals-restraint-iran"
+  },
+  {
+   "date": "2026-11-12",
+   "text": "Attacks on Saudi energy sites and Hormuz disruptions: Brent +3.3% to $95.82; S&P −0.4%.",
+   "swan": "Wider Gulf war",
+   "source": "https://live.euronext.com/en/financial-news/oil-settles-3-higher-attacks-saudi-energy-sites-strait-hormuz-disruptions"
+  }
+ ],
+ "flags": [],
+ "runs": [
+  "2026-11-14"
+ ]
+}
