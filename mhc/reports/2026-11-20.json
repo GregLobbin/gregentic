@@ -1,0 +1,143 @@
+{
+ "date": "2026-11-20",
+ "dataAsOf": "Nov 17–19, 2026",
+ "overall": {
+  "signal": "yellow",
+  "label": "Yellow",
+  "headline": "AI selloff drags stocks 8% below their record",
+  "text": "The S&P fell six days in a row, led by chip stocks, after Nvidia's CEO quit. The Fed looks set to hike in December. Oil fell to about $92. Junk-bond spreads widened, but are still well short of stress."
+ },
+ "powder": {
+  "score": 1,
+  "label": "Build — steady",
+  "action": "Keep new contributions going to Bond Plus. Make no transfers yet; the S&P fund is 8.2% below its high, about 2% above the 10% deploy zone (~7,037).",
+  "note": "If the S&P closes below ~7,037 while junk spreads stay under ~400bp, the call moves to Deploy. Cash earns about 4.2%, only ~0.5 pts above the last full-year inflation read (3.7%). Not financial advice."
+ },
+ "snapshot": {
+  "sp500": {"v": 7175.83, "signal": "yellow", "note": "Nov 19; 8.2% below Oct 6 record"},
+  "y10": {"v": 5.07, "signal": "red", "note": "Nov 19; still above 5%"},
+  "y30": {"v": 5.46, "signal": "red", "note": "Nov 17; near 20-year highs"},
+  "bill13": {"v": 4.155, "signal": "yellow", "note": "Nov 16 auction; ~0.5 pts above CPI"},
+  "brent": {"v": 91.98, "signal": "yellow", "note": "Nov 19 Jan futures; down from $110"},
+  "btc": {"v": 62519, "signal": "red", "note": "Nov 18; about 50% below 2025 peak"},
+  "vix": {"v": 28.44, "signal": "yellow", "note": "Nov 19; jumped 16% on AI selloff"}
+ },
+ "interim": {
+  "since": "2026-10-20",
+  "regime": {
+   "label": "Choppy",
+   "signal": "yellow",
+   "text": "A bumpy month: two sharp AI-chip selloffs and a 7.5% slide, but credit barely moved. It brings stocks closer to the buy zone without changing the longer-trend call yet."
+  },
+  "ranges": [
+   {"key": "sp500", "label": "S&P 500", "start": 7712.57, "end": 7175.83, "low": 7175.83, "high": 7757.17, "note": "Biggest dip −7.5% from Oct 21 high (Nov 19)"},
+   {"key": "y10", "label": "10-yr yield", "start": 5.12, "end": 5.07, "low": 4.84, "high": 5.13, "note": "Dipped to 4.84% in Nov 5 selloff, then rebounded"},
+   {"key": "vix", "label": "VIX (fear)", "start": 17.31, "end": 28.44, "low": 16.61, "high": 28.44, "note": "Peaked at month's end; never closed above 30"},
+   {"key": "hy", "label": "Junk spreads", "start": 333, "end": 347, "low": 314, "high": 348, "note": "Peak only 15bp above start; far from 400bp stress"},
+   {"key": "brent", "label": "Brent oil", "start": 109.55, "end": 91.98, "low": 91.95, "high": 117.64, "note": "Fell ~$26 from Oct 30 high as Hormuz traffic recovered"}
+  ],
+  "events": [
+   {"date": "2026-11-05", "text": "AI-chip selloff: S&P −4.4%, worst day since 2025; VIX jumped to 28.2.", "swan": "AI unwind"},
+   {"date": "2026-11-09", "text": "Trump signals restraint on Iran; Brent −5.9% to $92.57 and S&P +2.3%.", "swan": "Wider Gulf war"},
+   {"date": "2026-11-10", "text": "October CPI +0.4%, above forecast; markets now see a December Fed hike as near-certain.", "swan": "Fed over-tightens"},
+   {"date": "2026-11-12", "text": "Nvidia CEO Jensen Huang resigns; Nvidia −4.3% and 10-yr yield rises to 5.11%.", "swan": "AI unwind"},
+   {"date": "2026-11-19", "text": "Anthropic IPO jumps 17% on debut, yet S&P falls 2.0%, its sixth straight loss.", "swan": "AI unwind"}
+  ],
+  "basis": "Built from 19 logged trading days plus Nov 13–19 values filled from sourced news and FRED (log ends Nov 13). Calm/Choppy/Turbulent = worst of VIX peak, biggest S&P dip, junk-spread widening."
+ },
+ "outlook": [
+  {"days": 30, "lean": "Volatile, testing lows", "signal": "yellow", "text": "The Dec 8–9 Fed meeting and AI-stock nerves dominate. A drop into the 10% deploy zone is quite possible."},
+  {"days": 180, "lean": "Sideways, buying window", "signal": "yellow", "text": "Strong profits are fighting Fed hikes and 5% yields. Expect a range, with a good chance to buy lower."},
+  {"days": 365, "lean": "Positive, below average", "signal": "green", "text": "Earnings grew over 30% this year and stocks got cheaper. A year out, prices should be higher if profits hold."}
+ ],
+ "street": {
+  "consensus": {
+   "equities": "Split",
+   "treasuries": "Warming up",
+   "note": "Goldman and Morgan Stanley say buy stocks for 2027. BlackRock, PIMCO and Schwab lean toward high-quality bonds at today's yields."
+  },
+  "houses": [
+   {"firm": "Morgan Stanley", "date": "2026-11-16", "equities": "Max overweight; 8,700 end-2027", "treasuries": "10-yr ~5% forecast", "change": "Raised global stocks to 'maximum overweight', its most bullish stance, saying risk assets cheapened.", "fit": "red", "fitLabel": "Leans Deploy", "fitNote": "Argues for adding to the S&P fund now rather than building more cash in Bond Plus.", "link": "https://stockanalysis.com/news/morgan-stanley-maximum-overweight-global-stocks/"},
+   {"firm": "Goldman Sachs", "date": "2026-11-17", "equities": "8,700 end-2027 (18% total return)", "treasuries": "10-yr to 4.6% by end-2027", "change": "Rolled its target forward from 8,000 for end-2026 to 8,700 for end-2027.", "fit": "red", "fitLabel": "Leans Deploy", "fitNote": "An 18% expected return would favor the S&P fund over Bond Plus's yield.", "link": "https://fourweekmba.com/ai-goldmans-2027-sp-8700-ties-two-rivals-17-over-the-close/"},
+   {"firm": "BlackRock Investment Institute", "date": "2026-11-16", "equities": "US neutral (6–12 months)", "treasuries": "More constructive on duration", "change": "Turned more positive on bonds for the first time since 2020, citing the risk that AI spending slows.", "fit": "green", "fitLabel": "Supports Build", "fitNote": "Neutral stocks plus warmer bonds fits sending contributions to Bond Plus.", "link": "https://www.blackrock.com/es/profesionales/vision-de-mercado/comentario-semanal"},
+   {"firm": "PIMCO", "date": "2026-11-17", "equities": "Cautious on tech and AI", "treasuries": "Bonds offer attractive returns", "change": "Warned many portfolios have drifted too heavily into stocks and favored bonds at high real yields.", "fit": "green", "fitLabel": "Supports Build", "fitNote": "Backs holding dry powder in Bond Plus while yields are high.", "link": "https://www.pimco.com/us/en/insights/charting-the-year-ahead-investment-ideas-for-2027"},
+   {"firm": "Schwab", "date": "2026-11-13", "equities": "Cautious; lower P/E isn't a bottom", "treasuries": "Buy high-quality bonds now", "change": "Turned more hawkish after hot CPI, asking not whether the Fed hikes in December but by how much.", "fit": "green", "fitLabel": "Supports Build", "fitNote": "Bond yields near 20-year highs support adding to Bond Plus for now.", "link": "https://www.schwabassetmanagement.com/story/quarterly-market-outlook"}
+  ],
+  "voices": [
+   {"who": "Kevin Warsh, Chair, Federal Reserve", "date": "2026-10-28", "quote": "But inflation remains elevated.", "context": "At the October press conference, where the Fed held rates but flagged rising energy prices.", "signal": "yellow", "link": "https://www.federalreserve.gov/mediacenter/files/FOMCpresconf20261028.pdf"},
+   {"who": "Christopher Waller, Governor, Federal Reserve", "date": "2026-11-18", "quote": "If you really want to get it down you've got to start taking aggressive actions.", "context": "Making the case for a half-point hike at the Dec 8–9 meeting.", "signal": "red", "link": "https://www.businessday.co.za/world/americas/2026-11-18-waller-hints-at-more-aggressive-fed-response-over-inflation/"}
+  ],
+  "note": "These views are context, not a vote. Wall Street is often wrong together, and these views never change the dry-powder call on their own."
+ },
+ "macro": [
+  {"name": "AI & tech stocks", "signal": "red", "note": "Nasdaq 100 fell about 10% in a month as Nvidia's CEO quit and new China chip curbs hit."},
+  {"name": "Inflation & Fed", "signal": "red", "note": "October CPI rose 0.4% (core 0.3%), above forecast; a December hike is ~95% priced."},
+  {"name": "Oil & Middle East", "signal": "yellow", "note": "Brent fell to ~$92 as Hormuz traffic recovered, though Iran's mines still hit tankers."},
+  {"name": "Labor market", "signal": "green", "note": "October added 165K jobs and unemployment fell to 4.1%; no recession signal."},
+  {"name": "Credit", "signal": "yellow", "note": "Junk spreads rose to 347bp and CCC to 1,353bp; weakest borrowers strain, but no crisis."},
+  {"name": "Crypto sentiment", "signal": "red", "note": "Bitcoin near $62K, about half its 2025 peak, shows speculative appetite is fading fast."}
+ ],
+ "pullback": {
+  "ath": 7818.93,
+  "level": 7175.83,
+  "note": "The S&P is 8.2% below its Oct 6 record. The deploy zone starts at a 10% pullback (~7,037); a 20% pullback (~6,255) is a major opportunity."
+ },
+ "board": [
+  {"indicator": "S&P 500 level", "latest": "7,176 (−8.2% from record)", "change": "−6.7% (from 7,691)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/SP500"},
+  {"indicator": "Forward P/E", "latest": "18.3x (Nov 13, FactSet)", "change": "Down from 19.0x; hit 17.7x on Nov 5", "signal": "green", "link": "https://insight.factset.com/lowest-forward-12-month-p/e-ratio-for-the-sp-500-in-more-than-3-years"},
+  {"indicator": "Q3 earnings", "latest": "+31.9% growth; 84% beat (91% reported)", "change": "Up from +29%; forward EPS +3.3% since Sep 30", "signal": "green", "link": "https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_111326.pdf"},
+  {"indicator": "10-yr / 30-yr Treasury", "latest": "5.07% / 5.46%", "change": "−0.08 pts / +0.03 pts", "signal": "red", "link": "https://fred.stlouisfed.org/series/DGS10"},
+  {"indicator": "13-wk T-bill vs CPI", "latest": "4.16% vs 3.7%", "change": "+0.08 pts; cash beats inflation by ~0.5 pts", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/DTB3"},
+  {"indicator": "CPI (headline / core)", "latest": "+0.4% / +0.3% for October (monthly)", "change": "Above forecast; no yearly rate due to 2025 shutdown gap", "signal": "red", "link": "https://fred.stlouisfed.org/series/CPIAUCSL"},
+  {"indicator": "High-yield / CCC spread", "latest": "347bp / 1,353bp", "change": "HY +16bp, CCC +56bp", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"},
+  {"indicator": "Payrolls / unemployment", "latest": "+165K / 4.1%", "change": "Up from +29K / 4.2%", "signal": "green", "link": "https://fred.stlouisfed.org/series/UNRATE"},
+  {"indicator": "Sahm rule", "latest": "Not triggered", "change": "Unchanged; jobless rate fell", "signal": "green", "link": "https://fred.stlouisfed.org/series/SAHMREALTIME"},
+  {"indicator": "Fed funds / odds", "latest": "3.75–4.00%; Dec 8–9 hike ~95%", "change": "Up from ~89%; some talk of 0.50 pts", "signal": "red", "link": "https://fred.stlouisfed.org/series/DFF"},
+  {"indicator": "Brent crude", "latest": "$91.98 (Jan futures)", "change": "−$17.57 (from $109.55)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/DCOILBRENTEU"},
+  {"indicator": "Breadth", "latest": "Weak; ~600 new lows on Nov 18", "change": "Worse; selling spread beyond chips", "signal": "red"},
+  {"indicator": "VIX", "latest": "28.4", "change": "+10.0 (from 18.4)", "signal": "yellow", "link": "https://fred.stlouisfed.org/series/VIXCLS"},
+  {"indicator": "Bitcoin", "latest": "≈$62.5K", "change": "−24% (from $82.0K)", "signal": "red", "link": "https://fred.stlouisfed.org/series/CBBTCUSD"}
+ ],
+ "triggers": {
+  "red": [
+   "High-yield spreads above ~400bp",
+   "Fed hikes 0.50 pts and signals more; 10-yr above 5.5%",
+   "Unemployment at 4.5%+ or Sahm rule near 0.5"
+  ],
+  "green": [
+   "S&P closes below ~7,037 (−10%) with junk spreads under 400bp",
+   "Fed signals hikes are done; 10-yr falls below ~4.75%",
+   "Hormuz fully reopens; Brent below $85"
+  ]
+ },
+ "swans": [
+  "AI unwind: chip selloff spreads into AI debt and credit markets",
+  "Wider Gulf war: Hormuz mines and strikes cut oil flows again",
+  "Fed over-tightens: half-point hikes push the 10-yr toward 6%"
+ ],
+ "sources": [
+  {"title": "La Nación (AP) – How major US stock indexes fared, Nov 17 & 18, 2026", "url": "https://www.lanacion.com.ar/usa/how-major-us-stock-indexes-fared-wednesday-11182026-nid18112026/"},
+  {"title": "Yahoo Finance – Stock market today, Nov 19, 2026", "url": "https://finance.yahoo.com/markets/live/stock-market-today-thursday-november-19-dow-sp-500-nasdaq-anthropic-ipo-live-141306032.html"},
+  {"title": "Investing.com – Anthropic IPO triggers AI selloff", "url": "https://www.investing.com/news/stock-market-news/anthropic-ipo-triggers-ai-selloff--washout-or-deeper-unwind-93CH-5041498"},
+  {"title": "Zacks – Stock Market News for Nov 17 & 18, 2026", "url": "https://www.zacks.com/stock/news/3031665/stock-market-news-for-nov-18-2026"},
+  {"title": "FactSet – Earnings Insight, Nov 13, 2026", "url": "https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_111326.pdf"},
+  {"title": "FactSet – Lowest forward P/E in more than 3 years", "url": "https://insight.factset.com/lowest-forward-12-month-p/e-ratio-for-the-sp-500-in-more-than-3-years"},
+  {"title": "CBS News – October CPI report", "url": "https://www.cbsnews.com/news/october-cpi-report-elevated-inflation/"},
+  {"title": "Babypips – October 2026 jobs report", "url": "https://www.babypips.com/news/headline-us-jobs-report-october-2026-payrolls-beat-fed"},
+  {"title": "FRED – High-yield spread, CCC spread, 30-yr Treasury", "url": "https://fred.stlouisfed.org/series/bamlh0a0hym2"},
+  {"title": "Bloomberg via Swissinfo – Markets wrap, Nov 18, 2026", "url": "https://www.swissinfo.ch/eng/stocks-fall-as-nvidias-earnings-rally-sputters%3a-markets-wrap/92397458"},
+  {"title": "ad-hoc-news – VIX close, Nov 19, 2026", "url": "https://www.ad-hoc-news.de/boerse/news/marktberichte/vix-jumps-15-80-prozent-to-28-44-as-ai-worries-lift-friday-volatility/70539833"},
+  {"title": "Newsquawk – Brent settles, Nov 19, 2026", "url": "https://www.newsquawk.com/headlines/crude-wrap-wti-f7-settles-usd-005-lower-at-usd-8321bbl-brent-f7-settles-usd-003-higher-at-usd-9198bbl"},
+  {"title": "Newsquawk – 3-month bill auction, Nov 16, 2026", "url": "https://www.newsquawk.com/headlines/us-sells-3-month-bills-at-high-rate-of-4155-bc-276x-sells-6-month-bills-at-high-rate-of-4310-bc-283x"},
+  {"title": "HDFC Sky – Brent and Hormuz status, Nov 19, 2026", "url": "https://hdfcsky.com/news/brent-crude-oil-price-today-november-19-2026-brent-slips-0-2percent-to-91-7-wti-falls-to-82-7-as-surplus-looms"},
+  {"title": "NST (Reuters) – Wall Street ends lower as Nvidia CEO resigns", "url": "https://www.nst.com.my/amp/business/corporate/2026/11/1576568/wall-street-ends-lower-nvidia-ceo-resigns-us-yields"},
+  {"title": "TheStreet Pro – Breadth and Fed odds, Nov 18, 2026", "url": "https://pro.thestreet.com/market-commentary/anthropic-will-have-to-boost-the-market-where-nvidia-faded"},
+  {"title": "Stock Analysis – Morgan Stanley goes maximum overweight", "url": "https://stockanalysis.com/news/morgan-stanley-maximum-overweight-global-stocks/"},
+  {"title": "FourWeekMBA – Goldman's 2027 S&P target 8,700", "url": "https://fourweekmba.com/ai-goldmans-2027-sp-8700-ties-two-rivals-17-over-the-close/"},
+  {"title": "BlackRock – Weekly commentary", "url": "https://www.blackrock.com/es/profesionales/vision-de-mercado/comentario-semanal"},
+  {"title": "PIMCO – Investment ideas for 2027", "url": "https://www.pimco.com/us/en/insights/charting-the-year-ahead-investment-ideas-for-2027"},
+  {"title": "Schwab Asset Management – Quarterly market outlook", "url": "https://www.schwabassetmanagement.com/story/quarterly-market-outlook"},
+  {"title": "Federal Reserve – Warsh press conference, Oct 28, 2026", "url": "https://www.federalreserve.gov/mediacenter/files/FOMCpresconf20261028.pdf"},
+  {"title": "BusinessDay (Reuters) – Waller hints at more aggressive Fed", "url": "https://www.businessday.co.za/world/americas/2026-11-18-waller-hints-at-more-aggressive-fed-response-over-inflation/"}
+ ]
+}
