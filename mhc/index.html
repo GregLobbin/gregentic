@@ -161,6 +161,12 @@ a.tile:hover{background:var(--bg3)}
 .pbar .rp{border:2px solid var(--muted);background:var(--bg2)}
 .pbar .nw{background:var(--accent)}
 .pbar .tx{position:absolute;top:-4px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap;font-family:var(--mono)}
+.pbar .mv{position:absolute;top:14px;height:2px;background:var(--accent);opacity:.75}
+.pbar .mv::after{content:"";position:absolute;top:-5px;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.pbar .mv.r::after{right:5px;border-left:9px solid var(--accent)}
+.pbar .mv.l::after{left:5px;border-right:9px solid var(--accent)}
+.plrow .dir{font-size:13px;font-weight:600}
+.plrow .dir.toward{color:var(--yellow)}.plrow .dir.away{color:var(--green)}.plrow .dir.thru{color:var(--red)}.plrow .dir.flat{color:var(--muted)}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .plkey i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .wk{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-size:14px;color:var(--dim)}
@@ -393,6 +399,7 @@ function planLines(){
   LOG.days.forEach(d=>{if(typeof d.sp500==='number'&&d.sp500>ath)ath=d.sp500});
   if(typeof live.sp500==='number'&&ath&&live.sp500>ath)ath=live.sp500;
   const hy=nowVal('hy');const rows=[];
+  let hyRep=null;LOG.days.forEach(d=>{if(d.date<=cur.date&&typeof d.hy==='number')hyRep=d.hy});
   const fmtI=v=>Math.round(v).toLocaleString(),pct=v=>v.toFixed(2)+'%',bp=v=>Math.round(v)+'bp',usd=v=>'$'+v.toFixed(0),vx=v=>v.toFixed(1);
   const sp=nowVal('sp500');
   if(ath){
@@ -404,7 +411,7 @@ function planLines(){
       state:sp?(sp.v<=mz?'attention':(sp.v<=ath*0.816?'watch':'on-track')):null,
       what:sp?(sp.v<=mz?'Inside the major zone; the plan points to Deploy+':((sp.v/mz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
   }
-  rows.push({name:'Junk spreads',line:'Stress above 400bp',lineV:400,dir:'above',rep:null,now:hy,f:bp,
+  rows.push({name:'Junk spreads',line:'Stress above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
     state:hy?(hy.v>400?'attention':hy.v>=375?'watch':'on-track'):null,what:hy?(hy.v>400?'Credit stress line crossed':(400-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
   const y=nowVal('y10');
   rows.push({name:'10-yr yield (high)',line:'Stress above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
@@ -422,6 +429,17 @@ function planLines(){
     state:u.v>=4.5?'attention':u.v>=4.4?'watch':'on-track',what:u.v>=4.5?'Stress line crossed':(4.5-u.v).toFixed(1)+' pts below the line',col:'r'});
   return rows;
 }
+function moveDir(r){
+  if(!r.now||typeof r.rep!=='number')return null;
+  const n=r.now.v,p=r.rep,L=r.lineV,up=n>p,ar=up?'▲':'▼';
+  if(Math.abs(n-p)<Math.abs(L)*0.0005)return{cls:'flat',txt:'– little change since report'};
+  const side=v=>r.dir==='below'?(v<=L):(v>L);
+  if(side(n)&&!side(p))return{cls:'thru',txt:ar+' crossed the line since the report'};
+  if(!side(n)&&side(p))return{cls:'away',txt:ar+' back across the line since the report'};
+  const toward=Math.abs(n-L)<Math.abs(p-L);
+  if(side(n))return toward?{cls:'away',txt:ar+' back toward the line'}:{cls:'thru',txt:ar+' deeper past the line'};
+  return toward?{cls:'toward',txt:ar+' moving toward the line'}:{cls:'away',txt:ar+' moving away from the line'};
+}
 function pbar(r){
   const vals=[r.lineV,r.now?.v,r.rep].filter(x=>typeof x==='number');if(vals.length<2)return el('div','pbar');
   let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.15||Math.abs(hi)*0.02;lo-=pad;hi+=pad;
@@ -430,6 +448,7 @@ function pbar(r){
   const L=el('span','lin '+(r.col||''));L.style.left=pos(r.lineV);b.append(L);
   const lt=el('span','tx','line');lt.style.left=pos(r.lineV);b.append(lt);
   if(typeof r.rep==='number'){const d=el('span','rp');d.style.left=pos(r.rep);d.title='At report: '+r.f(r.rep);b.append(d)}
+  if(r.now&&typeof r.rep==='number'&&Math.abs(r.now.v-r.rep)>1e-9){const a=Math.min(r.rep,r.now.v),z=Math.max(r.rep,r.now.v);const m=el('span','mv '+(r.now.v>r.rep?'r':'l'));m.style.left=pos(a);m.style.width='calc('+pos(z)+' - '+pos(a)+')';b.append(m)}
   if(r.now){const d=el('span','nw');d.style.left=pos(r.now.v);d.title='Now: '+r.f(r.now.v);b.append(d)}
   b.setAttribute('role','img');b.setAttribute('aria-label',`${r.name}: ${r.now?'now '+r.f(r.now.v):'no current value'}${typeof r.rep==='number'?', at report '+r.f(r.rep):''}, line ${r.f(r.lineV)}`);
   return b;
@@ -466,6 +485,7 @@ function renderLiveLayer(){
     const st=el('div','st');
     if(r.state)st.append(el('span','chip '+(r.state==='attention'?'red':r.state==='watch'?'yellow':'green'),r.state==='attention'?'Crossed':r.state==='watch'?'Close':'Clear'));
     st.append(el('small',null,(r.now?'Now '+r.f(r.now.v):'—')+(typeof r.rep==='number'?' · was '+r.f(r.rep):'')));
+    const dv=moveDir(r);if(dv)st.append(el('span','dir '+dv.cls,dv.txt));
     if(r.what)st.append(el('small',null,r.what));
     if(r.now?.src==='log')st.append(el('span','src','weekly log, '+fmtShort(r.now.date)));
     row.append(n,pbar(r),st);pl.append(row)});
