@@ -114,6 +114,39 @@ a.tile:hover{background:var(--bg3)}
 .ev .dt{font-family:var(--mono);font-size:13px;color:var(--accent);padding-top:2px}
 .ev .tag{display:inline-block;margin-left:6px;font-size:12px;color:var(--yellow);border:1px solid var(--yellow);padding:0 6px;white-space:nowrap}
 @media(max-width:520px){.rrow{grid-template-columns:1fr auto}.rrow .rbar{grid-column:1/-1;order:3}}
+
+/* ── live layer ── */
+.livebar{border:1px solid var(--border);border-left:5px solid var(--green);background:var(--bg2);padding:14px 18px;display:grid;gap:6px}
+.livebar.watch{border-left-color:var(--yellow)}.livebar.attention{border-left-color:var(--red)}
+.livebar .lt{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap}
+.livebar .lt b{font-size:18px}
+.livebar .lk{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.livebar p{margin:0;font-size:15px;color:var(--dim);max-width:78ch}
+.livebar .lm{font-size:13px;color:var(--muted)}
+.pl{display:grid;gap:0}
+.plrow{display:grid;grid-template-columns:minmax(120px,1.1fr) minmax(0,1.6fr) minmax(150px,1fr);gap:4px 16px;align-items:center;padding:10px 0;border-top:1px dashed var(--border)}
+.plrow:first-child{border-top:none}
+.plrow .nm{font-weight:600;font-size:15px}
+.plrow .ln{font-size:13px;color:var(--muted)}
+.plrow .st{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.plrow .st .chip{font-size:12px}
+.plrow .st small{font-size:13px;color:var(--dim)}
+.plrow .src{font-size:12px;color:var(--muted)}
+.pbar{position:relative;height:30px}
+.pbar .trk{position:absolute;left:0;right:0;top:14px;height:2px;background:var(--border)}
+.pbar .lin{position:absolute;top:6px;width:2px;height:18px;margin-left:-1px;background:var(--yellow)}
+.pbar .lin.r{background:var(--red)}.pbar .lin.g{background:var(--green)}
+.pbar .rp,.pbar .nw{position:absolute;top:9px;width:12px;height:12px;border-radius:50%;margin-left:-6px}
+.pbar .rp{border:2px solid var(--muted);background:var(--bg2)}
+.pbar .nw{background:var(--accent)}
+.pbar .tx{position:absolute;top:-4px;font-size:11px;color:var(--muted);transform:translateX(-50%);white-space:nowrap;font-family:var(--mono)}
+.plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.plkey i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.wk{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-size:14px;color:var(--dim)}
+.wk .dots{display:flex;gap:6px;flex-wrap:wrap}
+.wk .d{font-family:var(--mono);font-size:12px;border:1px solid var(--border);padding:2px 7px;white-space:nowrap}
+.wk .d.watch{border-color:var(--yellow)}.wk .d.attention{border-color:var(--red)}.wk .d.on-track{border-color:var(--green)}
+@media(max-width:640px){.plrow{grid-template-columns:1fr}.plrow .st{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-start;text-align:left;gap:4px 10px}}
 .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
 @media(max-width:820px){.two{grid-template-columns:1fr}}
 ul.l{padding-left:20px;display:grid;gap:9px;font-size:16px}
@@ -284,7 +317,7 @@ async function loadLive(){
     ]);
   }
   liveFull=full;liveAt=Date.now();liveBusy=false;
-  renderTiles();
+  renderTiles();renderLiveLayer();
 }
 function liveStatusText(){
   const n=Object.keys(live).length;
@@ -318,8 +351,119 @@ function renderTiles(){
   setLiveStatus();
 }
 
+
+// ── LIVE LAYER: where things stand now vs this report, using the plan lines ──
+let LOG={days:[],status:[]};
+async function loadLog(){
+  const months=new Set();const now=new Date();
+  const start=cur?new Date(cur.date+'T12:00:00'):new Date(now.getFullYear(),now.getMonth()-1,1);
+  for(let d=new Date(start.getFullYear(),start.getMonth(),1);d<=now;d.setMonth(d.getMonth()+1))months.add(d.toISOString().slice(0,7));
+  const days=[],status=[];
+  await Promise.all([...months].map(async m=>{try{const r=await fetch(`log/${m}.json`,{cache:'no-cache'});if(!r.ok)return;const j=await r.json();days.push(...(j.days||[]));status.push(...(j.status||[]))}catch(_){}}));
+  days.sort((a,b)=>a.date.localeCompare(b.date));status.sort((a,b)=>a.date.localeCompare(b.date));
+  LOG={days,status};
+}
+function logLatest(key){for(let i=LOG.days.length-1;i>=0;i--){const v=LOG.days[i][key];if(typeof v==='number')return{v,date:LOG.days[i].date}}return null}
+function nowVal(key){
+  if(typeof live[key]==='number')return{v:live[key],src:'live'};
+  const l=logLatest(key);if(l)return{v:l.v,src:'log',date:l.date};
+  return null;
+}
+const SEV={'on-track':0,watch:1,attention:2};
+function planLines(){
+  if(!cur)return[];
+  const S=cur.snapshot||{};
+  let ath=cur.pullback?.ath||null;
+  LOG.days.forEach(d=>{if(typeof d.sp500==='number'&&d.sp500>ath)ath=d.sp500});
+  if(typeof live.sp500==='number'&&ath&&live.sp500>ath)ath=live.sp500;
+  const hy=nowVal('hy');const rows=[];
+  const fmtI=v=>Math.round(v).toLocaleString(),pct=v=>v.toFixed(2)+'%',bp=v=>Math.round(v)+'bp',usd=v=>'$'+v.toFixed(0),vx=v=>v.toFixed(1);
+  const sp=nowVal('sp500');
+  if(ath){
+    const bz=ath*0.9,mz=ath*0.8,credOK=!hy||hy.v<400;
+    rows.push({name:'S&P buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+      state:sp?(sp.v<=bz?(credOK?'attention':'watch'):(sp.v<=ath*0.918?'watch':'on-track')):null,
+      what:sp?(sp.v<=bz?(credOK?'Inside the buy zone; the plan points to Deploy':'Below the line, but credit is stressed'):((sp.v/bz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
+    rows.push({name:'S&P major zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+      state:sp?(sp.v<=mz?'attention':(sp.v<=ath*0.816?'watch':'on-track')):null,
+      what:sp?(sp.v<=mz?'Inside the major zone; the plan points to Deploy+':((sp.v/mz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
+  }
+  rows.push({name:'Junk spreads',line:'Stress above 400bp',lineV:400,dir:'above',rep:null,now:hy,f:bp,
+    state:hy?(hy.v>400?'attention':hy.v>=375?'watch':'on-track'):null,what:hy?(hy.v>400?'Credit stress line crossed':(400-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
+  const y=nowVal('y10');
+  rows.push({name:'10-yr yield (high)',line:'Stress above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
+    state:y?(y.v>5.5?'attention':y.v>=5.4?'watch':'on-track'):null,what:y?(y.v>5.5?'Stress line crossed':(5.5-y.v).toFixed(2)+' pts below the line'):'',col:'r'});
+  rows.push({name:'10-yr yield (low)',line:'Risk easing below 4.75%',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
+    state:y?(y.v<4.75?'attention':y.v<=4.85?'watch':'on-track'):null,what:y?(y.v<4.75?'Easing line crossed':(y.v-4.75).toFixed(2)+' pts above the line'):'',col:'g'});
+  const v=nowVal('vix');
+  rows.push({name:'VIX (fear gauge)',line:'Stress above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
+    state:v?(v.v>30?'attention':v.v>=25?'watch':'on-track'):null,what:v?(v.v>30?'Fear spike: above the stress line':(30-v.v).toFixed(1)+' below the line'):'',col:'r'});
+  const b=nowVal('brent');
+  rows.push({name:'Brent oil',line:'Risk easing below $85',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
+    state:b?(b.v<85?'attention':b.v<=89?'watch':'on-track'):null,what:b?(b.v<85?'Easing line crossed':'$'+(b.v-85).toFixed(0)+' above the line'):'',col:'g'});
+  const u=nowVal('unrate');
+  if(u)rows.push({name:'Unemployment',line:'Stress at 4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
+    state:u.v>=4.5?'attention':u.v>=4.4?'watch':'on-track',what:u.v>=4.5?'Stress line crossed':(4.5-u.v).toFixed(1)+' pts below the line',col:'r'});
+  return rows;
+}
+function pbar(r){
+  const vals=[r.lineV,r.now?.v,r.rep].filter(x=>typeof x==='number');if(vals.length<2)return el('div','pbar');
+  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.15||Math.abs(hi)*0.02;lo-=pad;hi+=pad;
+  const pos=x=>((x-lo)/(hi-lo)*100).toFixed(1)+'%';
+  const b=el('div','pbar');b.append(el('div','trk'));
+  const L=el('span','lin '+(r.col||''));L.style.left=pos(r.lineV);b.append(L);
+  const lt=el('span','tx','line');lt.style.left=pos(r.lineV);b.append(lt);
+  if(typeof r.rep==='number'){const d=el('span','rp');d.style.left=pos(r.rep);d.title='At report: '+r.f(r.rep);b.append(d)}
+  if(r.now){const d=el('span','nw');d.style.left=pos(r.now.v);d.title='Now: '+r.f(r.now.v);b.append(d)}
+  b.setAttribute('role','img');b.setAttribute('aria-label',`${r.name}: ${r.now?'now '+r.f(r.now.v):'no current value'}${typeof r.rep==='number'?', at report '+r.f(r.rep):''}, line ${r.f(r.lineV)}`);
+  return b;
+}
+const STATE_TXT={'on-track':'✅ On track',watch:'👀 Watch',attention:'⚠️ Needs attention'};
+function renderLiveLayer(){
+  const top=document.getElementById('livebar'),box=document.getElementById('plines');if(!cur||!top||!box)return;
+  const rows=planLines(),known=rows.filter(r=>r.state);
+  const worst=known.reduce((a,r)=>SEV[r.state]>SEV[a]?r.state:a,'on-track');
+  const isLatest=LIST[0]?.date===cur.date;
+  // banner
+  top.className='livebar '+worst;top.replaceChildren();
+  const lt=el('div','lt');lt.append(el('span','lk','Live · since the '+fmtShort(cur.date)+' report'),el('b',null,STATE_TXT[worst]));top.append(lt);
+  const sp=nowVal('sp500'),rep=num(cur.snapshot?.sp500);
+  const parts=[];
+  if(sp&&rep)parts.push(`S&P ${Math.round(sp.v).toLocaleString()} (${chg(IND[0],sp.v,rep)||'unchanged'} since the report)`);
+  const crossed=known.filter(r=>r.state==='attention'),near=known.filter(r=>r.state==='watch');
+  if(crossed.length)parts.push('Crossed: '+crossed.map(r=>r.name).join(', '));
+  if(near.length)parts.push('Close: '+near.map(r=>r.name).join(', '));
+  if(!crossed.length&&!near.length)parts.push('No plan line is close');
+  top.append(el('p',null,parts.join('. ')+'.'));
+  const call=cur.powder?.label||'';
+  const bzRow=rows.find(r=>r.name==='S&P buy zone'&&r.state==='attention');
+  top.append(el('p',null,`The ${fmtShort(cur.date)} call was ${call}.`+(bzRow?' The plan says a buy-zone close points to Deploy — your call.':'')+(isLatest?' Next full report: '+nextReportDate()+'.':' A newer report exists; pick it from the menu.')));
+  const srcLog=rows.some(r=>r.now?.src==='log');
+  top.append(el('div','lm',(Object.keys(live).length?liveStatusText().replace(' · lines show 52 weeks',''):'Live prices unavailable')+(srcLog?' · some values from the weekly log (dated)':'')+' · describes only; the call above changes only in a full report'));
+  // plan lines panel
+  box.replaceChildren();
+  const key=el('div','plkey');const a=el('span');a.append(el('i'),document.createTextNode('at report'));a.firstChild.style.cssText='border:2px solid var(--muted)';const b=el('span');b.append(el('i'),document.createTextNode('now'));b.firstChild.style.background='var(--accent)';const c=el('span');c.append(el('i'),document.createTextNode('plan line'));c.firstChild.style.cssText='border-radius:0;width:3px;height:14px;background:var(--yellow)';key.append(a,b,c);box.append(key);
+  const pl=el('div','pl');
+  rows.forEach(r=>{const row=el('div','plrow');
+    const n=el('div');n.append(el('div','nm',r.name),el('div','ln',r.line));
+    const st=el('div','st');
+    if(r.state)st.append(el('span','chip '+(r.state==='attention'?'red':r.state==='watch'?'yellow':'green'),r.state==='attention'?'Crossed':r.state==='watch'?'Close':'Clear'));
+    st.append(el('small',null,(r.now?'Now '+r.f(r.now.v):'—')+(typeof r.rep==='number'?' · was '+r.f(r.rep):'')));
+    if(r.what)st.append(el('small',null,r.what));
+    if(r.now?.src==='log')st.append(el('span','src','weekly log, '+fmtShort(r.now.date)));
+    row.append(n,pbar(r),st);pl.append(row)});
+  box.append(pl);
+  // weekly check strip
+  const ws=LOG.status.filter(x=>x.date>=cur.date);
+  if(LOG.status.length){const w=el('div','wk');w.append(el('span','lk','Saturday checks'));const dots=el('div','dots');
+    LOG.status.slice(-8).forEach(x=>{const d=el('span','d '+x.state,fmtShort(x.date)+' '+(x.state==='attention'?'⚠️':x.state==='watch'?'👀':'✅'));d.title=x.text||'';dots.append(d)});
+    w.append(dots);box.append(w)}
+  drawRuler();
+}
+function nextReportDate(){const n=new Date();let d=new Date(n.getFullYear(),n.getMonth(),20);if(n.getDate()>=20)d=new Date(n.getFullYear(),n.getMonth()+1,20);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+
 // ── PULLBACK RULER (drawn at real pixel width so text stays readable on phones) ──
-function ruler(p,Wpx){
+function ruler(p,Wpx,nowLevel){
   const W=Math.round(Math.max(300,Math.min(980,Wpx))),narrow=W<560,H=98,pad=narrow?18:36,minPct=-25;
   const x=v=>pad+(v-minPct)/(0-minPct)*(W-2*pad);
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
@@ -337,12 +481,20 @@ function ruler(p,Wpx){
   else{add('text',{x:(x(-25)+x(-20))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY MORE');
        add('text',{x:(x(-20)+x(-10))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY ZONE')}
   const mx=x(Math.max(minPct,Math.min(0,dd)));
-  add('line',{x1:mx,x2:mx,y1:30,y2:56,stroke:A,'stroke-width':3});add('circle',{cx:mx,cy:43,r:6,fill:A});
-  const lbl=`Now ${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`;
-  add('text',{x:Math.min(mx+8,W-pad),y:26,'text-anchor':mx>W*0.6?'end':'start','font-size':13,fill:A,'font-family':F,'font-weight':'bold'},lbl);
+  const hasNow=typeof nowLevel==='number';
+  if(hasNow){
+    add('circle',{cx:mx,cy:43,r:6,fill:css('--bg2'),stroke:M,'stroke-width':2.5});
+    const nd=(nowLevel/p.ath-1)*100,nx=x(Math.max(minPct,Math.min(0,nd)));
+    add('line',{x1:nx,x2:nx,y1:30,y2:56,stroke:A,'stroke-width':3});add('circle',{cx:nx,cy:43,r:6,fill:A});
+    add('text',{x:Math.min(nx+8,W-pad),y:26,'text-anchor':nx>W*0.6?'end':'start','font-size':13,fill:A,'font-family':F,'font-weight':'bold'},`Now ${Math.round(nowLevel).toLocaleString()} (${nd.toFixed(1)}%)`);
+    add('title',{},`Report: ${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`);
+  }else{
+    add('line',{x1:mx,x2:mx,y1:30,y2:56,stroke:A,'stroke-width':3});add('circle',{cx:mx,cy:43,r:6,fill:A});
+    add('text',{x:Math.min(mx+8,W-pad),y:26,'text-anchor':mx>W*0.6?'end':'start','font-size':13,fill:A,'font-family':F,'font-weight':'bold'},`Report ${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`);
+  }
   return svg;
 }
-function drawRuler(){const b=document.getElementById('ruler');if(!b||!cur?.pullback)return;b.replaceChildren(ruler(cur.pullback,b.clientWidth||600))}
+function drawRuler(){const b=document.getElementById('ruler');if(!b||!cur?.pullback)return;const sp=nowVal('sp500');b.replaceChildren(ruler(cur.pullback,b.clientWidth||600,sp?sp.v:null))}
 let rzT;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(drawRuler,150)});
 
 
@@ -370,6 +522,9 @@ function interimCard(I){
 function render(r){
   const app=document.getElementById('app');app.replaceChildren();
 
+  // 0. Live banner (computed on load)
+  const lb=el('section','livebar');lb.id='livebar';lb.append(el('span','lk','Live · loading…'));app.append(lb);
+
   // 1. Bottom line
   const hero=el('section','card hero '+(r.overall?.signal||''));
   const k=el('div','kick');k.append(el('span','chip '+(r.overall?.signal||''),r.overall?.label||''),el('span','lbl','Market Health Check · '+fmtMonth(r.date)));
@@ -391,6 +546,10 @@ function render(r){
   }
   if(r.powder?.note)pw.append(el('p','note',r.powder.note));
   app.append(section('What to do',pw));
+
+  // 2b. Plan lines (live)
+  const plc=el('div','card');plc.id='plines';plc.append(el('div','lbl','Loading…'));
+  const pls=section('Plan lines · live vs this report',plc);app.append(pls);
 
   // 3. Key numbers
   const kn=el('section','blk'),kh=el('div','sh');kh.append(el('span',null,'Key numbers'));
@@ -437,7 +596,7 @@ function render(r){
   if(r.sources?.length){const d=el('div');d.append(el('h3',null,'Sources'));const u2=el('ol','src');r.sources.forEach(s=>{const li=el('li');li.append(link(s.title,s.url));u2.append(li)});d.append(u2);db.append(d)}
   det.append(db);app.append(det);
 
-  renderTiles();drawRuler();
+  renderTiles();renderLiveLayer();
 }
 
 let LIST=[];
@@ -447,6 +606,7 @@ async function loadReport(date){
     cur=await getReport(date);
     const i=LIST.findIndex(x=>x.date===date),p=LIST[i+1];
     prev=p?await getReport(p.date).catch(()=>null):null;
+    await loadLog();
     render(cur);
   }catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
 }
