@@ -192,7 +192,8 @@ a.tile:hover{background:var(--bg3)}
 .grp .gh{font-weight:700;font-size:15px;color:var(--accent)}
 .grp .gp{margin:0 0 6px;font-size:13px;color:var(--muted);max-width:75ch}
 .plrow .q{font-size:12px;color:var(--accent);font-style:italic;margin-bottom:1px}
-.plrow .cn{font-size:14px;color:var(--dim);text-align:center}
+.plrow .cn{font-size:14px;color:var(--dim);text-align:center;display:grid;gap:3px}
+.plrow .cn .src{font-size:12px;color:var(--muted)}
 .chip.muted{color:var(--muted)}
 .plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
@@ -412,6 +413,21 @@ async function loadLog(){
   await Promise.all([...months].map(async m=>{try{const r=await fetch(`log/${m}.json`,{cache:'no-cache'});if(!r.ok)return;const j=await r.json();days.push(...(j.days||[]));status.push(...(j.status||[]))}catch(_){}}));
   days.sort((a,b)=>a.date.localeCompare(b.date));status.sort((a,b)=>a.date.localeCompare(b.date));
   LOG={days,status};
+  try{const r=await fetch('valuation.json',{cache:'no-cache'});VAL=r.ok?await r.json():null}catch(_){VAL=null}
+}
+let VAL=null;
+// Valuation: estimated forward P/E = S&P now / FactSet forward EPS; compared with FactSet averages and the 10-yr yield
+function valuation(){
+  if(!VAL?.eps||!VAL?.avg10)return null;
+  const sp=nowVal('sp500'),y=nowVal('y10');if(!sp)return null;
+  const pe=sp.v/VAL.eps,vs10=(pe/VAL.avg10-1)*100,vs20=VAL.avg20?(pe/VAL.avg20-1)*100:null,ey=100/pe,gap=y?ey-y.v:null;
+  const level=vs10>10?'rich':vs10<-10?'cheap':'fair';
+  const bond=gap==null?null:gap<1?'competitive':gap<2?'neutral':'supportive';
+  let pace,cls;
+  if(level==='rich'){pace='Rich: even in the buy zone, deploy only gradually (about a third).';cls='red'}
+  else if(level==='fair'){pace=bond==='competitive'?'Fair, but bonds compete: the slow end of Deploy — gradual.':'Fair: the normal Deploy — gradual pace.';cls='yellow'}
+  else{pace=bond==='supportive'?'Cheap with a healthy cushion over bonds: room to step up toward Deploy+.':'Cheap versus the past decade, but bonds still compete: stay gradual.';cls='green'}
+  return{pe,vs10,vs20,ey,gap,level,bond,pace,cls};
 }
 function logLatest(key){for(let i=LOG.days.length-1;i>=0;i--){const v=LOG.days[i][key];if(typeof v==='number')return{v,date:LOG.days[i].date}}return null}
 function nowVal(key){
@@ -485,6 +501,7 @@ function diagnose(){
   if(br!=null)ev.push(`Brent $${br.toFixed(0)}`);
   ev.push(ur!=null?(ur>=4.5?`unemployment ${ur.toFixed(1)}%: recession signal`:`unemployment ${ur.toFixed(1)}%`):'no recession signal in the data');
   const c=canary();if(c)ev.push('canary: '+c.txt.charAt(0).toLowerCase()+c.txt.slice(1));
+  const V=valuation();if(V)ev.push(`valuation ${V.level} (~${V.pe.toFixed(1)}x vs ${VAL.avg10}x 10-yr avg; earnings yield ${V.ey.toFixed(1)}% vs 10-yr ${(V.ey-V.gap).toFixed(2)}%)`);
   const oilShock=br!=null&&((brRep&&br>=brRep*1.15)||br>=115);
   let d;
   if(hy!=null&&hy>600)d={name:'Credit crunch',sev:'red',plan:'The buy zone is on hold. Keep building dry powder until spreads stop widening; don’t catch a falling knife.'};
@@ -495,7 +512,9 @@ function diagnose(){
   else if(dd!=null&&dd>=10)d={name:'Sentiment correction',sev:'green',plan:'Credit is calm and no recession signal shows. This is the setup the buy-zone rule was written for: the plan points to Deploy — gradual. Your call.'};
   else if(dd!=null&&dd>=5)d={name:'Pullback',sev:'yellow',plan:'A normal dip with credit calm. Not yet in the buy zone; the plan is unchanged.'};
   else d={name:'Calm market',sev:'green',plan:'Stocks near their highs and nothing stressed underneath. The plan is unchanged.'};
+  if(d.name==='Sentiment correction'&&V)d.plan+=' Pace: '+V.pace;
   if(d.name==='Sentiment correction'&&hy!=null&&hy>=375)d.plan+=' Watch credit closely: spreads are near the 400bp line.';
+  d.val=V;
   d.ev=ev;d.canary=c;return d;
 }
 function moveDir(r){
@@ -577,12 +596,20 @@ function renderLiveLayer(){
     row.append(n,pbar(r),st);return row};
   const g1=el('div','grp');g1.append(el('div','gh','1 · The trigger: when the plan acts'),el('p','gp','The only lines tied to an action. Whether to trust them depends on what’s underneath.'));
   const p1=el('div','pl');rows.filter(r=>r.group==='trigger').forEach(r=>p1.append(mkRow(r)));g1.append(key,p1);box.append(g1);
-  const g2=el('div','grp');g2.append(el('div','gh','2 · What’s underneath: what kind of drop'),el('p','gp','Each gauge answers one question. Together they separate a normal correction from a credit crunch, a rate shock or a recession.'));
+  const g2=el('div','grp');g2.append(el('div','gh','2 · What’s underneath: what kind of drop, and how much cushion'),el('p','gp','Each gauge answers one question. Together they separate a normal correction from a credit crunch, a rate shock or a recession. Valuation then sets the pace of buying.'));
   const p2=el('div','pl');rows.filter(r=>r.group!=='trigger').forEach(r=>p2.append(mkRow(r)));
   const C=D?.canary;
   {const row=el('div','plrow');const n=el('div');n.append(el('div','q','Is risky money leaving first?'),el('div','nm','Bitcoin (canary)'),el('div','ln','Not held. Read as an early signal of risk appetite.'));
     const mid=el('div','cn',C?`Bitcoin ${C.bc>=0?'+':''}${C.bc.toFixed(1)}% vs S&P ${C.sc>=0?'+':''}${C.sc.toFixed(1)}% since the report`:'No reading yet');
     const st=el('div','st');if(C){st.append(el('span','chip '+C.cls,C.st==='warning'?'Warning':C.st==='watch'?'Watch':C.st==='good'?'Positive':'In step'));st.append(el('small',null,'Now $'+Math.round(C.now).toLocaleString()+' · was $'+Math.round(C.rep).toLocaleString()));st.append(el('small',null,C.txt))}
+    row.append(n,mid,st);p2.append(row)}
+  const V=valuation();
+  {const row=el('div','plrow');const n=el('div');n.append(el('div','q','How much cushion is there?'),el('div','nm','Valuation (forward P/E)'),el('div','ln','Sets the pace of buying, not whether to buy. Estimated: S&P now ÷ FactSet forward earnings.'));
+    const mid=el('div','cn');
+    if(V){mid.append(document.createTextNode(`~${V.pe.toFixed(1)}x vs ${VAL.avg10}x 10-yr avg (${V.vs10>=0?'+':''}${V.vs10.toFixed(0)}%)`+(V.vs20!=null?` · ${VAL.avg20}x 20-yr avg (${V.vs20>=0?'+':''}${V.vs20.toFixed(0)}%)`:'')));
+      mid.append(el('div','src',`Earnings yield ${V.ey.toFixed(1)}% vs 10-yr ${(V.ey-V.gap).toFixed(2)}%: gap ${V.gap.toFixed(1)} pts (${V.bond==='competitive'?'bonds compete':V.bond==='neutral'?'modest cushion':'healthy cushion'})`))}
+    else mid.textContent='No reading yet';
+    const st=el('div','st');if(V){st.append(el('span','chip '+V.cls,V.level==='rich'?'Rich':V.level==='fair'?'Fair':'Cheap'));st.append(el('small',null,V.pace));st.append(el('span','src','FactSet EPS as of '+fmtShort(VAL.asOf)))}
     row.append(n,mid,st);p2.append(row)}
   g2.append(p2);box.append(g2);
   // weekly check strip
