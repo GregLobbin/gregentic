@@ -72,9 +72,9 @@
    "sp500": 7520.93,
    "y10": 4.98,
    "y30": 5.35,
-   "bill13": null,
+   "bill13": 4.12,
    "vix": 19.46,
-   "hy": null,
+   "hy": 330,
    "brent": null,
    "btc": 73303
   },
@@ -94,7 +94,7 @@
    "sp500": 7592.4,
    "y10": 5.1,
    "y30": null,
-   "bill13": null,
+   "bill13": 4.14,
    "vix": 18.7,
    "hy": 320,
    "brent": 95.82,
@@ -102,14 +102,69 @@
   },
   {
    "date": "2026-11-13",
-   "sp500": null,
-   "y10": null,
-   "y30": null,
-   "bill13": null,
-   "vix": null,
-   "hy": null,
+   "sp500": 7561.67,
+   "y10": 5.15,
+   "y30": 5.47,
+   "bill13": 4.13,
+   "vix": 19.3,
+   "hy": 323,
    "brent": 95.84,
    "btc": 68178
+  },
+  {
+   "date": "2026-11-16",
+   "sp500": 7416.59,
+   "y10": 5.12,
+   "y30": 5.46,
+   "bill13": 4.16,
+   "vix": 22.91,
+   "hy": 334,
+   "brent": null,
+   "btc": 64538
+  },
+  {
+   "date": "2026-11-17",
+   "sp500": 7340.53,
+   "y10": 5.1,
+   "y30": 5.46,
+   "bill13": 4.15,
+   "vix": 25.46,
+   "hy": 343,
+   "brent": null,
+   "btc": 64605
+  },
+  {
+   "date": "2026-11-18",
+   "sp500": 7323.63,
+   "y10": 5.07,
+   "y30": 5.41,
+   "bill13": 4.16,
+   "vix": 24.56,
+   "hy": 347,
+   "brent": 91.95,
+   "btc": 63171
+  },
+  {
+   "date": "2026-11-19",
+   "sp500": 7175.83,
+   "y10": 5.04,
+   "y30": 5.4,
+   "bill13": null,
+   "vix": 28.44,
+   "hy": 352,
+   "brent": 91.98,
+   "btc": 62018
+  },
+  {
+   "date": "2026-11-20",
+   "sp500": 6910.39,
+   "y10": 4.92,
+   "y30": null,
+   "bill13": null,
+   "vix": 35.89,
+   "hy": null,
+   "brent": null,
+   "btc": 58831
   }
  ],
  "notes": [
@@ -129,10 +184,50 @@
    "text": "Attacks on Saudi energy sites and Hormuz disruptions: Brent +3.3% to $95.82; S&P −0.4%.",
    "swan": "Wider Gulf war",
    "source": "https://live.euronext.com/en/financial-news/oil-settles-3-higher-attacks-saudi-energy-sites-strait-hormuz-disruptions"
+  },
+  {
+   "date": "2026-11-19",
+   "text": "Broad selloff on rate and valuation worries: S&P −2.0%, sixth straight loss; 10-yr −0.03 pts.",
+   "source": "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-nov-19-221002368.html"
+  },
+  {
+   "date": "2026-11-20",
+   "text": "AI-chip rout, Nvidia −14%: S&P −3.7% into correction, VIX 35.9, 10-yr −0.12 pts.",
+   "swan": "AI unwind",
+   "source": "https://pro.thestreet.com/market-commentary/the-sp-500s-worst-week-since-april-2025-ends-in-a-correction"
   }
  ],
- "flags": [],
+ "flags": [
+  {
+   "date": "2026-11-17",
+   "level": "watch",
+   "text": "VIX closed in the 25–30 watch range (25.46)"
+  },
+  {
+   "date": "2026-11-19",
+   "level": "watch",
+   "text": "S&P within 2% of the buy zone: 7,175.83 vs ~7,037 line; VIX 28.44"
+  },
+  {
+   "date": "2026-11-20",
+   "level": "attention",
+   "text": "Buy zone: S&P closed 11.6% below record (6,910.39 ≤ ~7,037); junk spreads 352bp on Nov 19, under 400"
+  },
+  {
+   "date": "2026-11-20",
+   "level": "attention",
+   "text": "Stress line: VIX closed above 30 (35.89)"
+  }
+ ],
  "runs": [
-  "2026-11-14"
+  "2026-11-14",
+  "2026-11-21"
+ ],
+ "status": [
+  {
+   "date": "2026-11-21",
+   "state": "attention",
+   "text": "⚠️ Needs attention. Fri Nov 20: S&P closed at 6,910, 11.6% below its record — inside the 10% buy zone (~7,037); junk spreads still calm (352bp). Fear gauge (VIX) also closed above 30 (35.9).\nThe plan points to moving to Deploy. Not a major-zone move (that's ~6,255).\nYour call; the next full report is Dec 20. Reply in Claude if you want an early full report. Not financial advice.\nhttps://gregentic.com/mhc/"
+  }
  ]
 }
