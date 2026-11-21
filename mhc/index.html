@@ -115,6 +115,27 @@ a.tile:hover{background:var(--bg3)}
 .ev .tag{display:inline-block;margin-left:6px;font-size:12px;color:var(--yellow);border:1px solid var(--yellow);padding:0 6px;white-space:nowrap}
 @media(max-width:520px){.rrow{grid-template-columns:1fr auto}.rrow .rbar{grid-column:1/-1;order:3}}
 
+
+.overlay{border:1.5px dashed var(--accent);background:var(--bg3);padding:16px 18px;display:grid;gap:16px}
+.ovh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ovh h2{margin:0;font-size:20px}
+.ovh .pill{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;color:var(--bg);background:var(--accent);padding:2px 8px;margin-right:10px;vertical-align:middle}
+.ovh .aside{font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center}
+.ovsub{font-size:14px;color:var(--muted);margin:-8px 0 0}
+.ovblk h3{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:normal}
+.nowtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(124px,1fr));gap:8px}
+.nt{background:var(--bg2);border:1px solid var(--border);padding:10px 12px;display:grid;gap:2px;text-decoration:none;color:inherit;min-width:0}
+.nt:hover{border-color:var(--accent)}
+.nt .n{font-size:13px;color:var(--dim)}.nt .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.nt .d{font-size:13px;color:var(--dim)}
+.rptdiv{display:flex;align-items:center;gap:12px;margin-top:8px}
+.rptdiv::before,.rptdiv::after{content:"";flex:1;height:2px;background:var(--border)}
+.rptdiv span{font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;text-align:center;min-width:0}
+.ovdet>summary{cursor:pointer;font-size:14px;color:var(--accent);list-style:none}
+.ovdet>summary::-webkit-details-marker{display:none}
+.ovdet>summary::before{content:'▸ ';}
+.ovdet[open]>summary::before{content:'▾ ';}
+.ovdet>.ovin{display:grid;gap:16px;margin-top:14px}
 /* ── live layer ── */
 .livebar{border:1px solid var(--border);border-left:5px solid var(--green);background:var(--bg2);padding:14px 18px;display:grid;gap:6px}
 .livebar.watch{border-left-color:var(--yellow)}.livebar.attention{border-left-color:var(--red)}
@@ -317,7 +338,7 @@ async function loadLive(){
     ]);
   }
   liveFull=full;liveAt=Date.now();liveBusy=false;
-  renderTiles();renderLiveLayer();
+  setLiveStatus();renderLiveLayer();
 }
 function liveStatusText(){
   const n=Object.keys(live).length;
@@ -341,11 +362,6 @@ function renderTiles(){
     t.append(top,el('div','v',v==null?'n/a':I.fmt(v)));
     if(prev){const c=chg(I,v,num(P[I.key]));t.append(el('div','dl',c?c+' vs '+fmtShort(prev.date):'no earlier reading'))}
     if(x?.note)t.append(el('div','s',x.note));
-    const L=live[I.key],sr=liveSeries[I.key];
-    if(L!=null&&v!=null){
-      const c=chg(I,L,v);t.append(el('div','now','Now '+I.fmt(L)+(c&&c!=='unchanged'?' · '+c:'')));
-      if(sr){const pct=(L-sr.c[0])/Math.abs(sr.c[0])*100,good=I.inv?pct<0:pct>0;const col=Math.abs(pct)<0.5?css('--muted'):good?css('--green'):css('--red');const g=sparkSvg(sr.c,col,`${I.label} trend`);if(g)t.append(g)}
-    }
     box.append(t);
   });
   setLiveStatus();
@@ -426,7 +442,8 @@ function renderLiveLayer(){
   const isLatest=LIST[0]?.date===cur.date;
   // banner
   top.className='livebar '+worst;top.replaceChildren();
-  const lt=el('div','lt');lt.append(el('span','lk','Live · since the '+fmtShort(cur.date)+' report'),el('b',null,STATE_TXT[worst]));top.append(lt);
+  const od=document.getElementById('ovdet');if(od&&!od.dataset.touched)od.open=(worst==='attention');
+  const lt=el('div','lt');lt.append(el('b',null,STATE_TXT[worst]));top.append(lt);
   const sp=nowVal('sp500'),rep=num(cur.snapshot?.sp500);
   const parts=[];
   if(sp&&rep)parts.push(`S&P ${Math.round(sp.v).toLocaleString()} (${chg(IND[0],sp.v,rep)||'unchanged'} since the report)`);
@@ -437,9 +454,9 @@ function renderLiveLayer(){
   top.append(el('p',null,parts.join('. ')+'.'));
   const call=cur.powder?.label||'';
   const bzRow=rows.find(r=>r.name==='S&P buy zone'&&r.state==='attention');
-  top.append(el('p',null,`The ${fmtShort(cur.date)} call was ${call}.`+(bzRow?' The plan says a buy-zone close points to Deploy — your call.':'')+(isLatest?' Next full report: '+nextReportDate()+'.':' A newer report exists; pick it from the menu.')));
+  top.append(el('p',null,`The report's call stays ${call}.`+(bzRow?' Its rulebook says a close in the buy zone points to Deploy, to be weighed in the next full report or sooner if you ask. Your call.':'')+(isLatest?' Next full report: '+nextReportDate()+'.':' A newer report exists; pick it from the menu.')));
   const srcLog=rows.some(r=>r.now?.src==='log');
-  top.append(el('div','lm',(Object.keys(live).length?liveStatusText().replace(' · lines show 52 weeks',''):'Live prices unavailable')+(srcLog?' · some values from the weekly log (dated)':'')+' · describes only; the call above changes only in a full report'));
+  if(srcLog)top.append(el('div','lm','Some values come from the weekly log and show their date.'));
   // plan lines panel
   box.replaceChildren();
   const key=el('div','plkey');const a=el('span');a.append(el('i'),document.createTextNode('at report'));a.firstChild.style.cssText='border:2px solid var(--muted)';const b=el('span');b.append(el('i'),document.createTextNode('now'));b.firstChild.style.background='var(--accent)';const c=el('span');c.append(el('i'),document.createTextNode('plan line'));c.firstChild.style.cssText='border-radius:0;width:3px;height:14px;background:var(--yellow)';key.append(a,b,c);box.append(key);
@@ -454,11 +471,20 @@ function renderLiveLayer(){
     row.append(n,pbar(r),st);pl.append(row)});
   box.append(pl);
   // weekly check strip
-  const ws=LOG.status.filter(x=>x.date>=cur.date);
+  const wsBox=document.getElementById('wkstrip');if(wsBox){wsBox.replaceChildren();
   if(LOG.status.length){const w=el('div','wk');w.append(el('span','lk','Saturday checks'));const dots=el('div','dots');
     LOG.status.slice(-8).forEach(x=>{const d=el('span','d '+x.state,fmtShort(x.date)+' '+(x.state==='attention'?'⚠️':x.state==='watch'?'👀':'✅'));d.title=x.text||'';dots.append(d)});
-    w.append(dots);box.append(w)}
-  drawRuler();
+    w.append(dots);wsBox.append(w)}}
+  // key numbers now (live vs report)
+  const nt=document.getElementById('nowtiles');if(nt){nt.replaceChildren();const S=cur.snapshot||{};
+    IND.forEach(I=>{const nv=nowVal(I.key),rv=num(S[I.key]);if(!nv)return;
+      const a=el('a','nt');a.href=`https://finance.yahoo.com/quote/${I.yh}/`;a.target='_blank';a.rel='noopener';
+      a.append(el('span','n',I.label),el('span','v',I.fmt(nv.v)));
+      const c=chg(I,nv.v,rv);a.append(el('span','d',rv==null?'no report value':(c==='unchanged'?'unchanged':c)+' since report'));
+      const sr=liveSeries[I.key];if(sr&&nv.src==='live'){const pct=(nv.v-sr.c[0])/Math.abs(sr.c[0])*100,good=I.inv?pct<0:pct>0;const col=Math.abs(pct)<0.5?css('--muted'):good?css('--green'):css('--red');const g=sparkSvg(sr.c,col,`${I.label} trend`);if(g)a.append(g)}
+      if(nv.src==='log')a.append(el('span','d','weekly log, '+fmtShort(nv.date)));
+      nt.append(a)})}
+  setLiveStatus();drawRuler();
 }
 function nextReportDate(){const n=new Date();let d=new Date(n.getFullYear(),n.getMonth(),20);if(n.getDate()>=20)d=new Date(n.getFullYear(),n.getMonth()+1,20);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
 
@@ -490,11 +516,14 @@ function ruler(p,Wpx,nowLevel){
     add('title',{},`Report: ${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`);
   }else{
     add('line',{x1:mx,x2:mx,y1:30,y2:56,stroke:A,'stroke-width':3});add('circle',{cx:mx,cy:43,r:6,fill:A});
-    add('text',{x:Math.min(mx+8,W-pad),y:26,'text-anchor':mx>W*0.6?'end':'start','font-size':13,fill:A,'font-family':F,'font-weight':'bold'},`Report ${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`);
+    add('text',{x:Math.min(mx+8,W-pad),y:26,'text-anchor':mx>W*0.6?'end':'start','font-size':13,fill:A,'font-family':F,'font-weight':'bold'},`${Math.round(p.level).toLocaleString()} (${dd.toFixed(1)}%)`);
   }
   return svg;
 }
-function drawRuler(){const b=document.getElementById('ruler');if(!b||!cur?.pullback)return;const sp=nowVal('sp500');b.replaceChildren(ruler(cur.pullback,b.clientWidth||600,sp?sp.v:null))}
+function drawRuler(){if(!cur?.pullback)return;
+  const b=document.getElementById('ruler');if(b)b.replaceChildren(ruler(cur.pullback,b.clientWidth||600,null));
+  const n=document.getElementById('ruler-now');const sp=nowVal('sp500');
+  if(n){if(sp)n.replaceChildren(ruler(cur.pullback,n.clientWidth||600,sp.v));else n.replaceChildren(el('p','lbl','No current S&P value yet'))}}
 let rzT;window.addEventListener('resize',()=>{clearTimeout(rzT);rzT=setTimeout(drawRuler,150)});
 
 
@@ -522,8 +551,22 @@ function interimCard(I){
 function render(r){
   const app=document.getElementById('app');app.replaceChildren();
 
-  // 0. Live banner (computed on load)
-  const lb=el('section','livebar');lb.id='livebar';lb.append(el('span','lk','Live · loading…'));app.append(lb);
+  // 0. LIVE OVERLAY — everything that moves lives here, never inside the report
+  const ov=el('section','overlay');
+  const oh=el('div','ovh');const h2=el('h2');h2.append(el('span','pill','LIVE'),document.createTextNode("What's changed since this report"));
+  const aside=el('span','aside');const st=el('span',null,'');st.id='live-st';const btn=el('button','rf','⟳ Refresh');btn.id='lv-btn';btn.type='button';btn.title='Refresh live prices';btn.onclick=()=>loadLive();aside.append(st,btn);
+  oh.append(h2,aside);ov.append(oh);
+  ov.append(el('p','ovsub','Current market numbers compared with the '+fmtDate(r.date)+' report. Not part of the report: it never changes the report\'s call.'));
+  const lb=el('div','livebar');lb.id='livebar';lb.append(el('span','lk','Loading…'));ov.append(lb);
+  const odt=el('details','ovdet');odt.id='ovdet';const sum=el('summary',null,'Details: plan lines, S&P vs its record, key numbers now');odt.append(sum);const inn=el('div','ovin');odt.append(inn);
+  odt.addEventListener('toggle',()=>{if(odt.open)drawRuler()});odt.querySelector('summary').addEventListener('click',()=>{odt.dataset.touched='1'});
+  const b1=el('div','ovblk');b1.append(el('h3',null,'Against the plan lines'));const plc=el('div');plc.id='plines';b1.append(plc);inn.append(b1);
+  const b2=el('div','ovblk');b2.append(el('h3',null,'S&P vs its record, now'));const rn=el('div','ruler');rn.id='ruler-now';b2.append(rn);inn.append(b2);
+  const b3=el('div','ovblk');b3.append(el('h3',null,'Key numbers now'));const nt=el('div','nowtiles');nt.id='nowtiles';b3.append(nt);inn.append(b3);
+  ov.append(odt);
+  const wk=el('div');wk.id='wkstrip';ov.append(wk);
+  app.append(ov);
+  const dv=el('div','rptdiv');dv.append(el('span',null,'The '+fmtDate(r.date)+' report · as published'));app.append(dv);
 
   // 1. Bottom line
   const hero=el('section','card hero '+(r.overall?.signal||''));
@@ -547,13 +590,10 @@ function render(r){
   if(r.powder?.note)pw.append(el('p','note',r.powder.note));
   app.append(section('What to do',pw));
 
-  // 2b. Plan lines (live)
-  const plc=el('div','card');plc.id='plines';plc.append(el('div','lbl','Loading…'));
-  const pls=section('Plan lines · live vs this report',plc);app.append(pls);
 
   // 3. Key numbers
   const kn=el('section','blk'),kh=el('div','sh');kh.append(el('span',null,'Key numbers'));
-  const aside=el('span','aside');const st=el('span',null,'');st.id='live-st';const btn=el('button','rf','⟳ Refresh');btn.id='lv-btn';btn.type='button';btn.title='Refresh live prices';btn.onclick=()=>loadLive();aside.append(st,btn);kh.append(aside);
+  kh.append(el('span','aside','As of '+(r.dataAsOf||fmtDate(r.date))));
   const tiles=el('div','tiles');tiles.id='tiles';kn.append(kh,tiles);app.append(kn);
 
   // 4. What changed + outlook
