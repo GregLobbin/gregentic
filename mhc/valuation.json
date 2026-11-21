@@ -9,5 +9,13 @@
  "avg20": 16.5,
  "avg25": 16.4,
  "source": "FactSet Earnings Insight, Nov 6, 2026",
- "url": "https://advantage.factset.com/hubfs/Website/Resources%20Section/Research%20Desk/Earnings%20Insight/EarningsInsight_110626.pdf"
+ "url": "https://insight.factset.com/lowest-forward-12-month-p/e-ratio-for-the-sp-500-in-more-than-3-years",
+ "lenses": {
+  "buffett": {"v": 225, "asOf": "2026-09-30", "price": 7651.54, "avg": 88, "cheap": 75, "rich": 120, "unit": "%",
+   "source": "Statista (Q3 2026 reading); bands are Buffett's own: 75–90% reasonable, over 120% overvalued", "url": "https://www.statista.com/chart/21972/market-capitalization-to-gdp-ratio/"},
+  "cape": {"v": 41.04, "asOf": "2026-10-28", "price": 7743.98, "avg": 17.3, "cheap": 20, "rich": 30, "unit": "x",
+   "source": "Shiller data via Motley Fool (Oct 28 close); long-run average since 1871", "url": "https://www.mitrade.com/insights/news/live-news/article-8-2221560-20261102"},
+  "trailing": {"v": 25.4, "asOf": "2026-11-05", "price": 7353.73, "avg": 16, "cheap": 14, "rich": 20, "unit": "x",
+   "source": "FactSet (Nov 6 update), long-run average about 16x", "url": "https://www.heygotrade.com/en/news/sp-500-forward-pe-ratio-three-year-low/"}
+ }
 }

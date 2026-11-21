@@ -195,6 +195,16 @@ a.tile:hover{background:var(--bg3)}
 .plrow .cn{font-size:14px;color:var(--dim);text-align:center;display:grid;gap:3px}
 .plrow .cn .src{font-size:12px;color:var(--muted)}
 .chip.muted{color:var(--muted)}
+.vbar{position:relative;height:10px;margin:16px 4px 4px;border-radius:3px;background:var(--bg2)}
+.vbar .vz{position:absolute;top:0;bottom:0}
+.vbar .vz.g{background:color-mix(in srgb,var(--green) 35%,transparent)}.vbar .vz.y{background:color-mix(in srgb,var(--yellow) 25%,transparent)}.vbar .vz.r{background:color-mix(in srgb,var(--red) 35%,transparent)}
+.vbar .vavg{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--dim)}
+.vbar .vlbl{position:absolute;top:-16px;transform:translateX(-50%);font-size:11px;color:var(--muted);white-space:nowrap}
+.vbar .vnow{position:absolute;top:50%;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--text);border:2px solid var(--bg)}
+.vbar .voff{position:absolute;right:-2px;top:-16px;font-size:11px;color:var(--red);font-weight:600}
+.vverdict{margin-top:8px;padding:10px 12px;border-left:3px solid currentColor;background:var(--bg2);display:grid;gap:4px;font-size:14px;color:var(--dim)}
+.vverdict.red{border-color:var(--red)}.vverdict.yellow{border-color:var(--yellow)}.vverdict.green{border-color:var(--green)}
+.vverdict .vh{font-weight:700;color:var(--text)}
 .plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .plkey i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
@@ -416,18 +426,42 @@ async function loadLog(){
   try{const r=await fetch('valuation.json',{cache:'no-cache'});VAL=r.ok?await r.json():null}catch(_){VAL=null}
 }
 let VAL=null;
-// Valuation: estimated forward P/E = S&P now / FactSet forward EPS; compared with FactSet averages and the 10-yr yield
+// Valuation: four lenses. Long-run (Buffett indicator, CAPE, trailing P/E) and forward P/E.
+// Each sourced reading is scaled by the S&P's move since its date. The pace follows the more cautious view.
+const LENS=[
+  {k:'buffett',nm:'Buffett indicator',q:'Stocks vs the size of the economy',ln:'Total US market value ÷ GDP. Buffett called it “probably the best single measure.” Reads high partly because big US firms earn abroad.',f:v=>Math.round(v)+'%'},
+  {k:'cape',nm:'CAPE (Shiller P/E)',q:'Price vs 10 years of real earnings',ln:'Smooths out the business cycle. The best long-run guide to 10-year returns; useless for timing.',f:v=>v.toFixed(1)+'x'},
+  {k:'trailing',nm:'Trailing P/E',q:'Price vs the last 12 months of earnings',ln:'Actual profits, no forecasts. Swings when earnings jump or collapse.',f:v=>v.toFixed(1)+'x'}];
 function valuation(){
   if(!VAL?.eps||!VAL?.avg10)return null;
   const sp=nowVal('sp500'),y=nowVal('y10');if(!sp)return null;
   const pe=sp.v/VAL.eps,vs10=(pe/VAL.avg10-1)*100,vs20=VAL.avg20?(pe/VAL.avg20-1)*100:null,ey=100/pe,gap=y?ey-y.v:null;
-  const level=vs10>10?'rich':vs10<-10?'cheap':'fair';
+  const fwd=vs10>10?'rich':vs10<-10?'cheap':'fair';
   const bond=gap==null?null:gap<1?'competitive':gap<2?'neutral':'supportive';
+  const lenses=LENS.map(L=>{const d=VAL.lenses?.[L.k];if(!d?.v||!d.price)return null;
+    const v=d.v*sp.v/d.price;return{...L,d,v,x:v/d.avg,level:v>d.rich?'rich':v<d.cheap?'cheap':'fair'}}).filter(Boolean);
+  const rank={cheap:0,fair:1,rich:2};
+  // long-run verdict: the middle reading of the three (majority), so one odd lens can't swing it
+  let longrun=null;if(lenses.length){const r=lenses.map(l=>rank[l.level]).sort((a,b)=>a-b);longrun=['cheap','fair','rich'][r[Math.floor((r.length-1)/2)]]}
+  const level=longrun&&rank[longrun]>rank[fwd]?longrun:fwd;
   let pace,cls;
-  if(level==='rich'){pace='Rich: even in the buy zone, deploy only gradually (about a third).';cls='red'}
+  if(level==='rich'){pace=longrun==='rich'&&fwd!=='rich'?'Rich on long-run measures (fair-to-cheap only if earnings forecasts hold): even in the buy zone, deploy gradually — about a third.':'Rich: even in the buy zone, deploy only gradually (about a third).';cls='red'}
   else if(level==='fair'){pace=bond==='competitive'?'Fair, but bonds compete: the slow end of Deploy — gradual.':'Fair: the normal Deploy — gradual pace.';cls='yellow'}
-  else{pace=bond==='supportive'?'Cheap with a healthy cushion over bonds: room to step up toward Deploy+.':'Cheap versus the past decade, but bonds still compete: stay gradual.';cls='green'}
-  return{pe,vs10,vs20,ey,gap,level,bond,pace,cls};
+  else{pace=bond==='supportive'?'Cheap with a healthy cushion over bonds: room to step up toward Deploy+.':'Cheap, but bonds still compete: stay gradual.';cls='green'}
+  return{pe,vs10,vs20,ey,gap,fwd,bond,lenses,longrun,level,pace,cls};
+}
+const LVL={rich:'Rich',fair:'Fair',cheap:'Cheap'},LCLS={rich:'red',fair:'yellow',cheap:'green'};
+// mini scale: cheap | fair | rich zones, a tick at the long-run average, a dot for now
+function vbar(lo,hi,cheap,rich,avg,now,fmt){
+  const W=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+  const b=el('div','vbar');
+  const z=(a,c,k)=>{const s=el('span','vz '+k);s.style.left=W(a)+'%';s.style.width=(W(c)-W(a))+'%';b.append(s)};
+  z(lo,cheap,'g');z(cheap,rich,'y');z(rich,hi,'r');
+  const t=el('span','vavg');t.style.left=W(avg)+'%';t.title='Long-run average '+fmt(avg);b.append(t);
+  const ta=el('span','vlbl');ta.style.left=W(avg)+'%';ta.textContent='avg '+fmt(avg);b.append(ta);
+  const d=el('span','vnow');d.style.left=W(now)+'%';d.title='Now '+fmt(now);b.append(d);
+  if(now>hi){const o=el('span','voff','→ '+fmt(now));b.append(o)}
+  return b;
 }
 function logLatest(key){for(let i=LOG.days.length-1;i>=0;i--){const v=LOG.days[i][key];if(typeof v==='number')return{v,date:LOG.days[i].date}}return null}
 function nowVal(key){
@@ -501,7 +535,7 @@ function diagnose(){
   if(br!=null)ev.push(`Brent $${br.toFixed(0)}`);
   ev.push(ur!=null?(ur>=4.5?`unemployment ${ur.toFixed(1)}%: recession signal`:`unemployment ${ur.toFixed(1)}%`):'no recession signal in the data');
   const c=canary();if(c)ev.push('canary: '+c.txt.charAt(0).toLowerCase()+c.txt.slice(1));
-  const V=valuation();if(V)ev.push(`valuation ${V.level} (~${V.pe.toFixed(1)}x vs ${VAL.avg10}x 10-yr avg; earnings yield ${V.ey.toFixed(1)}% vs 10-yr ${(V.ey-V.gap).toFixed(2)}%)`);
+  const V=valuation();if(V)ev.push(`valuation ${V.level}`+(V.longrun?` (long-run ${V.longrun}: `+V.lenses.map(l=>`${l.nm} ${l.f(l.v)}`).join(', ')+`; forward P/E ~${V.pe.toFixed(1)}x, ${V.fwd} vs ${VAL.avg10}x 10-yr avg)`:` (~${V.pe.toFixed(1)}x vs ${VAL.avg10}x 10-yr avg)`));
   const oilShock=br!=null&&((brRep&&br>=brRep*1.15)||br>=115);
   let d;
   if(hy!=null&&hy>600)d={name:'Credit crunch',sev:'red',plan:'The buy zone is on hold. Keep building dry powder until spreads stop widening; don’t catch a falling knife.'};
@@ -603,15 +637,32 @@ function renderLiveLayer(){
     const mid=el('div','cn',C?`Bitcoin ${C.bc>=0?'+':''}${C.bc.toFixed(1)}% vs S&P ${C.sc>=0?'+':''}${C.sc.toFixed(1)}% since the report`:'No reading yet');
     const st=el('div','st');if(C){st.append(el('span','chip '+C.cls,C.st==='warning'?'Warning':C.st==='watch'?'Watch':C.st==='good'?'Positive':'In step'));st.append(el('small',null,'Now $'+Math.round(C.now).toLocaleString()+' · was $'+Math.round(C.rep).toLocaleString()));st.append(el('small',null,C.txt))}
     row.append(n,mid,st);p2.append(row)}
-  const V=valuation();
-  {const row=el('div','plrow');const n=el('div');n.append(el('div','q','How much cushion is there?'),el('div','nm','Valuation (forward P/E)'),el('div','ln','Sets the pace of buying, not whether to buy. Estimated: S&P now ÷ FactSet forward earnings.'));
-    const mid=el('div','cn');
-    if(V){mid.append(document.createTextNode(`~${V.pe.toFixed(1)}x vs ${VAL.avg10}x 10-yr avg (${V.vs10>=0?'+':''}${V.vs10.toFixed(0)}%)`+(V.vs20!=null?` · ${VAL.avg20}x 20-yr avg (${V.vs20>=0?'+':''}${V.vs20.toFixed(0)}%)`:'')));
-      mid.append(el('div','src',`Earnings yield ${V.ey.toFixed(1)}% vs 10-yr ${(V.ey-V.gap).toFixed(2)}%: gap ${V.gap.toFixed(1)} pts (${V.bond==='competitive'?'bonds compete':V.bond==='neutral'?'modest cushion':'healthy cushion'})`))}
-    else mid.textContent='No reading yet';
-    const st=el('div','st');if(V){st.append(el('span','chip '+V.cls,V.level==='rich'?'Rich':V.level==='fair'?'Fair':'Cheap'));st.append(el('small',null,V.pace));st.append(el('span','src','FactSet EPS as of '+fmtShort(VAL.asOf)))}
-    row.append(n,mid,st);p2.append(row)}
   g2.append(p2);box.append(g2);
+  const V=valuation();
+  {const g3=el('div','grp');g3.append(el('div','gh','3 · Market valuation: how much cushion, and how fast to buy'),
+    el('p','gp','Valuation never says whether to buy; the trigger and the gauges above do that. It sets the pace. Three long-run measures look at actual history; the forward P/E looks at analysts’ forecasts. When they disagree, the plan follows the more cautious one.'));
+    const p3=el('div','pl');
+    if(V){V.lenses.forEach(l=>{const row=el('div','plrow');const n=el('div');n.append(el('div','q',l.q),el('div','nm',l.nm),el('div','ln',l.ln));
+      const mid=el('div','cn');mid.append(document.createTextNode(`≈${l.f(l.v)} now · ${l.x.toFixed(1)}× its long-run average (${l.f(l.d.avg)})`));
+      const hi=Math.max(l.d.rich*1.6,l.d.avg*2.6);mid.append(vbar(0,hi,l.d.cheap,l.d.rich,l.d.avg,l.v,l.f));
+      mid.append(el('div','src',`Cheap under ${l.f(l.d.cheap)} · rich over ${l.f(l.d.rich)}`));
+      const st=el('div','st');st.append(el('span','chip '+LCLS[l.level],LVL[l.level]));
+      const a=el('a','src',`${l.f(l.d.v)} on ${fmtShort(l.d.asOf)}, scaled to today’s S&P`);a.href=l.d.url;a.target='_blank';a.rel='noopener';a.title=l.d.source;st.append(a);
+      row.append(n,mid,st);p3.append(row)});
+      {const row=el('div','plrow');const n=el('div');n.append(el('div','q','Price vs the next 12 months of forecast earnings'),el('div','nm','Forward P/E'),el('div','ln','The Wall Street view. Looks cheap only if earnings forecasts come true.'));
+        const mid=el('div','cn');mid.append(document.createTextNode(`≈${V.pe.toFixed(1)}x now · ${VAL.avg10}x 10-yr avg (${V.vs10>=0?'+':''}${V.vs10.toFixed(0)}%)`+(V.vs20!=null?` · ${VAL.avg20}x 20-yr (${V.vs20>=0?'+':''}${V.vs20.toFixed(0)}%)`:'')));
+        mid.append(vbar(10,28,VAL.avg10*0.9,VAL.avg10*1.1,VAL.avg10,V.pe,v=>v.toFixed(1)+'x'));
+        if(V.gap!=null)mid.append(el('div','src',`Earnings yield ${V.ey.toFixed(1)}% vs 10-yr Treasury ${(V.ey-V.gap).toFixed(2)}%: gap ${V.gap.toFixed(1)} pts (${V.bond==='competitive'?'bonds compete':V.bond==='neutral'?'modest cushion':'healthy cushion'})`));
+        const st=el('div','st');st.append(el('span','chip '+LCLS[V.fwd],LVL[V.fwd]));
+        const a=el('a','src','FactSet forward EPS as of '+fmtShort(VAL.asOf));a.href=VAL.url;a.target='_blank';a.rel='noopener';st.append(a);
+        row.append(n,mid,st);p3.append(row)}
+      const vd=el('div','vverdict '+V.cls);
+      vd.append(el('div','vh','Verdict: '+LVL[V.level]+(V.longrun&&V.longrun!==V.fwd?` (long-run ${LVL[V.longrun].toLowerCase()}, forward ${LVL[V.fwd].toLowerCase()})`:'')));
+      vd.append(el('div',null,'Pace: '+V.pace));
+      if(V.longrun==='rich')vd.append(el('div','src','Buffett’s own pattern in expensive markets: let cash build, buy slowly into fear, and keep plenty in reserve for a deeper drop.'));
+      p3.append(vd);
+    }else p3.append(el('div','src','No valuation reading yet.'));
+    g3.append(p3);box.append(g3)}
   // weekly check strip
   const wsBox=document.getElementById('wkstrip');if(wsBox){wsBox.replaceChildren();
   if(LOG.status.length){const w=el('div','wk');w.append(el('span','lk','Saturday checks'));const dots=el('div','dots');
