@@ -167,6 +167,22 @@ a.tile:hover{background:var(--bg3)}
 .pbar .mv.l::after{left:5px;border-right:9px solid var(--accent)}
 .plrow .dir{font-size:13px;font-weight:600}
 .plrow .dir.toward{color:var(--yellow)}.plrow .dir.away{color:var(--green)}.plrow .dir.thru{color:var(--red)}.plrow .dir.flat{color:var(--muted)}
+.pbar{position:relative;height:46px}
+.pbar .trk{top:22px}
+.pbar .zone{position:absolute;top:12px;height:22px;border-radius:2px}
+.pbar .zone.g{background:color-mix(in srgb,var(--green) 22%,transparent)}
+.pbar .zone.r{background:color-mix(in srgb,var(--red) 22%,transparent)}
+.pbar .zl{position:absolute;top:15px;font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;white-space:nowrap;pointer-events:none}
+.pbar .zl.g{color:var(--green)}.pbar .zl.r{color:var(--red)}
+.pbar .lin{top:10px;height:26px}
+.pbar .lv{position:absolute;top:-3px;font-size:11px;font-family:var(--mono);transform:translateX(-50%);white-space:nowrap;color:var(--dim)}
+.pbar .ev{position:absolute;bottom:-4px;font-size:10px;font-family:var(--mono);color:var(--muted)}
+.pbar .rp,.pbar .nw{top:17px}
+.pbar .mv{top:22px}
+.plrow .ln .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.plrow .ln .sw.g{background:color-mix(in srgb,var(--green) 55%,transparent)}.plrow .ln .sw.r{background:color-mix(in srgb,var(--red) 55%,transparent)}
+.plrow .ln b{font-weight:600;color:var(--dim)}
+.plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .plkey i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
 .wk{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--border);margin-top:8px;padding-top:12px;font-size:14px;color:var(--dim)}
@@ -404,28 +420,28 @@ function planLines(){
   const sp=nowVal('sp500');
   if(ath){
     const bz=ath*0.9,mz=ath*0.8,credOK=!hy||hy.v<400;
-    rows.push({name:'S&P buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+    rows.push({name:'S&P buy zone',zone:'Buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
       state:sp?(sp.v<=bz?(credOK?'attention':'watch'):(sp.v<=ath*0.918?'watch':'on-track')):null,
       what:sp?(sp.v<=bz?(credOK?'Inside the buy zone; the plan points to Deploy':'Below the line, but credit is stressed'):((sp.v/bz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
-    rows.push({name:'S&P major zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+    rows.push({name:'S&P major zone',zone:'Major buy zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
       state:sp?(sp.v<=mz?'attention':(sp.v<=ath*0.816?'watch':'on-track')):null,
       what:sp?(sp.v<=mz?'Inside the major zone; the plan points to Deploy+':((sp.v/mz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
   }
-  rows.push({name:'Junk spreads',line:'Stress above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
+  rows.push({name:'Junk spreads',zone:'Stress zone',line:'above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
     state:hy?(hy.v>400?'attention':hy.v>=375?'watch':'on-track'):null,what:hy?(hy.v>400?'Credit stress line crossed':(400-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
   const y=nowVal('y10');
-  rows.push({name:'10-yr yield (high)',line:'Stress above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
+  rows.push({name:'10-yr yield (high)',zone:'Stress zone',line:'above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
     state:y?(y.v>5.5?'attention':y.v>=5.4?'watch':'on-track'):null,what:y?(y.v>5.5?'Stress line crossed':(5.5-y.v).toFixed(2)+' pts below the line'):'',col:'r'});
-  rows.push({name:'10-yr yield (low)',line:'Risk easing below 4.75%',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
+  rows.push({name:'10-yr yield (low)',zone:'Easing zone',line:'below 4.75% (rates easing)',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
     state:y?(y.v<4.75?'attention':y.v<=4.85?'watch':'on-track'):null,what:y?(y.v<4.75?'Easing line crossed':(y.v-4.75).toFixed(2)+' pts above the line'):'',col:'g'});
   const v=nowVal('vix');
-  rows.push({name:'VIX (fear gauge)',line:'Stress above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
+  rows.push({name:'VIX (fear gauge)',zone:'Stress zone',line:'above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
     state:v?(v.v>30?'attention':v.v>=25?'watch':'on-track'):null,what:v?(v.v>30?'Fear spike: above the stress line':(30-v.v).toFixed(1)+' below the line'):'',col:'r'});
   const b=nowVal('brent');
-  rows.push({name:'Brent oil',line:'Risk easing below $85',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
+  rows.push({name:'Brent oil',zone:'Easing zone',line:'below $85 (oil pressure easing)',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
     state:b?(b.v<85?'attention':b.v<=89?'watch':'on-track'):null,what:b?(b.v<85?'Easing line crossed':'$'+(b.v-85).toFixed(0)+' above the line'):'',col:'g'});
   const u=nowVal('unrate');
-  if(u)rows.push({name:'Unemployment',line:'Stress at 4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
+  if(u)rows.push({name:'Unemployment',zone:'Stress zone',line:'4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
     state:u.v>=4.5?'attention':u.v>=4.4?'watch':'on-track',what:u.v>=4.5?'Stress line crossed':(4.5-u.v).toFixed(1)+' pts below the line',col:'r'});
   return rows;
 }
@@ -441,16 +457,22 @@ function moveDir(r){
   return toward?{cls:'toward',txt:ar+' moving toward the line'}:{cls:'away',txt:ar+' moving away from the line'};
 }
 function pbar(r){
-  const vals=[r.lineV,r.now?.v,r.rep].filter(x=>typeof x==='number');if(vals.length<2)return el('div','pbar');
-  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.15||Math.abs(hi)*0.02;lo-=pad;hi+=pad;
-  const pos=x=>((x-lo)/(hi-lo)*100).toFixed(1)+'%';
-  const b=el('div','pbar');b.append(el('div','trk'));
+  const vals=[r.lineV,r.now?.v,r.rep].filter(x=>typeof x==='number');
+  let lo=Math.min(...vals),hi=Math.max(...vals);const pad=(hi-lo)*0.25||Math.abs(hi)*0.03;lo-=pad;hi+=pad;
+  const pct=x=>(x-lo)/(hi-lo)*100,pos=x=>pct(x).toFixed(1)+'%';
+  const b=el('div','pbar');
+  // shaded zone on the side the rule watches
+  const lp=pct(r.lineV),z=el('div','zone '+r.col),zl=el('span','zl '+r.col,r.zone||'');
+  if(r.dir==='below'){z.style.left='0';z.style.width=lp.toFixed(1)+'%';zl.style.left='4px'}
+  else{z.style.left=lp.toFixed(1)+'%';z.style.right='0';zl.style.right='4px'}
+  b.append(z,el('div','trk'));
   const L=el('span','lin '+(r.col||''));L.style.left=pos(r.lineV);b.append(L);
-  const lt=el('span','tx','line');lt.style.left=pos(r.lineV);b.append(lt);
-  if(typeof r.rep==='number'){const d=el('span','rp');d.style.left=pos(r.rep);d.title='At report: '+r.f(r.rep);b.append(d)}
-  if(r.now&&typeof r.rep==='number'&&Math.abs(r.now.v-r.rep)>1e-9){const a=Math.min(r.rep,r.now.v),z=Math.max(r.rep,r.now.v);const m=el('span','mv '+(r.now.v>r.rep?'r':'l'));m.style.left=pos(a);m.style.width='calc('+pos(z)+' - '+pos(a)+')';b.append(m)}
+  const lv=el('span','lv',r.f(r.lineV));lv.style.left=pos(r.lineV);b.append(lv);
+  const e1=el('span','ev',r.f(lo));e1.style.left='0';const e2=el('span','ev',r.f(hi));e2.style.right='0';b.append(e1,e2);
+  if(r.now&&typeof r.rep==='number'&&Math.abs(r.now.v-r.rep)>1e-9){const a=Math.min(r.rep,r.now.v),zz=Math.max(r.rep,r.now.v);const m=el('span','mv '+(r.now.v>r.rep?'r':'l'));m.style.left=pos(a);m.style.width='calc('+pos(zz)+' - '+pos(a)+')';b.append(m)}
+  if(typeof r.rep==='number'){const d=el('span','rp');d.style.left=pos(r.rep);d.title='Report day: '+r.f(r.rep);b.append(d)}
   if(r.now){const d=el('span','nw');d.style.left=pos(r.now.v);d.title='Now: '+r.f(r.now.v);b.append(d)}
-  b.setAttribute('role','img');b.setAttribute('aria-label',`${r.name}: ${r.now?'now '+r.f(r.now.v):'no current value'}${typeof r.rep==='number'?', at report '+r.f(r.rep):''}, line ${r.f(r.lineV)}`);
+  b.setAttribute('role','img');b.setAttribute('aria-label',`${r.name}: ${r.now?'now '+r.f(r.now.v):'no current value'}${typeof r.rep==='number'?', report day '+r.f(r.rep):''}, ${r.zone||'zone'} ${r.dir==='below'?'below':'above'} ${r.f(r.lineV)}`);
   return b;
 }
 const STATE_TXT={'on-track':'✅ On track',watch:'👀 Watch',attention:'⚠️ Needs attention'};
@@ -478,10 +500,16 @@ function renderLiveLayer(){
   if(srcLog)top.append(el('div','lm','Some values come from the weekly log and show their date.'));
   // plan lines panel
   box.replaceChildren();
-  const key=el('div','plkey');const a=el('span');a.append(el('i'),document.createTextNode('at report'));a.firstChild.style.cssText='border:2px solid var(--muted)';const b=el('span');b.append(el('i'),document.createTextNode('now'));b.firstChild.style.background='var(--accent)';const c=el('span');c.append(el('i'),document.createTextNode('plan line'));c.firstChild.style.cssText='border-radius:0;width:3px;height:14px;background:var(--yellow)';key.append(a,b,c);box.append(key);
+  box.append(el('p','plintro','Each row is one rule from the report. The shaded end of the bar is the zone that rule watches. If today\u2019s value enters it, the rule is triggered.'));
+  const key=el('div','plkey');
+  const k=(sty,t)=>{const sp=el('span');const i=el('i');i.style.cssText=sty;sp.append(i,document.createTextNode(t));return sp};
+  key.append(k('border:2px solid var(--muted)','report day'),k('background:var(--accent)','now (arrow = direction since)'),
+    k('border-radius:2px;width:16px;background:color-mix(in srgb,var(--green) 35%,transparent)','green zone = points toward buying'),
+    k('border-radius:2px;width:16px;background:color-mix(in srgb,var(--red) 35%,transparent)','red zone = stress, more caution'));
+  box.append(key);
   const pl=el('div','pl');
   rows.forEach(r=>{const row=el('div','plrow');
-    const n=el('div');n.append(el('div','nm',r.name),el('div','ln',r.line));
+    const n=el('div');const ln=el('div','ln');if(r.zone){const sw=el('span','sw '+(r.col||''));ln.append(sw,el('b',null,r.zone+': '))}ln.append(document.createTextNode(r.line));n.append(el('div','nm',r.name),ln);
     const st=el('div','st');
     if(r.state)st.append(el('span','chip '+(r.state==='attention'?'red':r.state==='watch'?'yellow':'green'),r.state==='attention'?'Crossed':r.state==='watch'?'Close':'Clear'));
     st.append(el('small',null,(r.now?'Now '+r.f(r.now.v):'—')+(typeof r.rep==='number'?' · was '+r.f(r.rep):'')));
@@ -580,7 +608,7 @@ function render(r){
   const lb=el('div','livebar');lb.id='livebar';lb.append(el('span','lk','Loading…'));ov.append(lb);
   const odt=el('details','ovdet');odt.id='ovdet';const sum=el('summary',null,'Details: plan lines, S&P vs its record, key numbers now');odt.append(sum);const inn=el('div','ovin');odt.append(inn);
   odt.addEventListener('toggle',()=>{if(odt.open)drawRuler()});odt.querySelector('summary').addEventListener('click',()=>{odt.dataset.touched='1'});
-  const b1=el('div','ovblk');b1.append(el('h3',null,'Against the plan lines'));const plc=el('div');plc.id='plines';b1.append(plc);inn.append(b1);
+  const b1=el('div','ovblk');b1.append(el('h3',null,"The report's tripwires"));const plc=el('div');plc.id='plines';b1.append(plc);inn.append(b1);
   const b2=el('div','ovblk');b2.append(el('h3',null,'S&P vs its record, now'));const rn=el('div','ruler');rn.id='ruler-now';b2.append(rn);inn.append(b2);
   const b3=el('div','ovblk');b3.append(el('h3',null,'Key numbers now'));const nt=el('div','nowtiles');nt.id='nowtiles';b3.append(nt);inn.append(b3);
   ov.append(odt);
