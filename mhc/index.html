@@ -182,6 +182,18 @@ a.tile:hover{background:var(--bg3)}
 .plrow .ln .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .plrow .ln .sw.g{background:color-mix(in srgb,var(--green) 55%,transparent)}.plrow .ln .sw.r{background:color-mix(in srgb,var(--red) 55%,transparent)}
 .plrow .ln b{font-weight:600;color:var(--dim)}
+.diag{border:1px solid var(--border);border-left:5px solid var(--green);background:var(--bg2);padding:14px 16px;display:grid;gap:6px;margin-bottom:16px}
+.diag.yellow{border-left-color:var(--yellow)}.diag.red{border-left-color:var(--red)}
+.diag .dk{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.diag .dn{font-size:22px;font-weight:700}
+.diag .dp{margin:0;font-size:15px;color:var(--text);max-width:75ch}
+.diag .dev{margin:4px 0 0;padding-left:18px;display:flex;flex-wrap:wrap;gap:2px 22px;font-size:13px;color:var(--dim)}
+.grp{display:grid;gap:4px;margin-top:10px}
+.grp .gh{font-weight:700;font-size:15px;color:var(--accent)}
+.grp .gp{margin:0 0 6px;font-size:13px;color:var(--muted);max-width:75ch}
+.plrow .q{font-size:12px;color:var(--accent);font-style:italic;margin-bottom:1px}
+.plrow .cn{font-size:14px;color:var(--dim);text-align:center}
+.chip.muted{color:var(--muted)}
 .plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .plkey i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
@@ -420,30 +432,71 @@ function planLines(){
   const sp=nowVal('sp500');
   if(ath){
     const bz=ath*0.9,mz=ath*0.8,credOK=!hy||hy.v<400;
-    rows.push({name:'S&P buy zone',zone:'Buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+    rows.push({name:'S&P buy zone',group:'trigger',q:'When does the plan act?',zone:'Buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
       state:sp?(sp.v<=bz?(credOK?'attention':'watch'):(sp.v<=ath*0.918?'watch':'on-track')):null,
       what:sp?(sp.v<=bz?(credOK?'Inside the buy zone; the plan points to Deploy':'Below the line, but credit is stressed'):((sp.v/bz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
-    rows.push({name:'S&P major zone',zone:'Major buy zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+    rows.push({name:'S&P major zone',group:'trigger',q:'When does the plan act more?',zone:'Major buy zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
       state:sp?(sp.v<=mz?'attention':(sp.v<=ath*0.816?'watch':'on-track')):null,
       what:sp?(sp.v<=mz?'Inside the major zone; the plan points to Deploy+':((sp.v/mz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
   }
-  rows.push({name:'Junk spreads',zone:'Stress zone',line:'above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
+  rows.push({name:'Junk spreads',group:'gauge',q:'Is credit cracking?',zone:'Stress zone',line:'above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
     state:hy?(hy.v>400?'attention':hy.v>=375?'watch':'on-track'):null,what:hy?(hy.v>400?'Credit stress line crossed':(400-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
   const y=nowVal('y10');
-  rows.push({name:'10-yr yield (high)',zone:'Stress zone',line:'above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
+  rows.push({name:'10-yr yield (high)',group:'gauge',q:'Is it a rate shock?',zone:'Stress zone',line:'above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
     state:y?(y.v>5.5?'attention':y.v>=5.4?'watch':'on-track'):null,what:y?(y.v>5.5?'Stress line crossed':(5.5-y.v).toFixed(2)+' pts below the line'):'',col:'r'});
-  rows.push({name:'10-yr yield (low)',zone:'Easing zone',line:'below 4.75% (rates easing)',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
+  rows.push({name:'10-yr yield (low)',group:'gauge',q:'Are rates easing?',zone:'Easing zone',line:'below 4.75% (rates easing)',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
     state:y?(y.v<4.75?'attention':y.v<=4.85?'watch':'on-track'):null,what:y?(y.v<4.75?'Easing line crossed':(y.v-4.75).toFixed(2)+' pts above the line'):'',col:'g'});
   const v=nowVal('vix');
-  rows.push({name:'VIX (fear gauge)',zone:'Stress zone',line:'above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
+  rows.push({name:'VIX (fear gauge)',group:'gauge',q:'Is it panic?',zone:'Stress zone',line:'above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
     state:v?(v.v>30?'attention':v.v>=25?'watch':'on-track'):null,what:v?(v.v>30?'Fear spike: above the stress line':(30-v.v).toFixed(1)+' below the line'):'',col:'r'});
   const b=nowVal('brent');
-  rows.push({name:'Brent oil',zone:'Easing zone',line:'below $85 (oil pressure easing)',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
+  rows.push({name:'Brent oil',group:'gauge',q:'Is it an oil shock?',zone:'Easing zone',line:'below $85 (oil pressure easing)',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
     state:b?(b.v<85?'attention':b.v<=89?'watch':'on-track'):null,what:b?(b.v<85?'Easing line crossed':'$'+(b.v-85).toFixed(0)+' above the line'):'',col:'g'});
   const u=nowVal('unrate');
-  if(u)rows.push({name:'Unemployment',zone:'Stress zone',line:'4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
+  if(u)rows.push({name:'Unemployment',group:'gauge',q:'Is a recession starting?',zone:'Stress zone',line:'4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
     state:u.v>=4.5?'attention':u.v>=4.4?'watch':'on-track',what:u.v>=4.5?'Stress line crossed':(4.5-u.v).toFixed(1)+' pts below the line',col:'r'});
   return rows;
+}
+
+// ── DIAGNOSIS: what kind of market is this? (same rulebook as the monthly report and the Saturday check) ──
+function canary(){
+  const b=nowVal('btc'),sp=nowVal('sp500'),S=cur?.snapshot||{};const br=num(S.btc),sr=num(S.sp500);
+  if(!b||!sp||br==null||sr==null)return null;
+  const bc=(b.v/br-1)*100,sc=(sp.v/sr-1)*100;
+  let st,txt,cls;
+  if(bc<=-25&&sc>-5){st='warning';cls='red';txt='Breaking down ahead of stocks: speculative money is leaving first'}
+  else if(bc>=50){st='warning';cls='yellow';txt='Up 50%+ — froth, often late in a run'}
+  else if(bc>=3&&sc<=-3){st='good';cls='green';txt='Recovering before stocks: an early all-clear sign'}
+  else if(bc<sc-10){st='watch';cls='yellow';txt='Weaker than stocks: risk appetite fading faster'}
+  else{st='ok';cls='green';txt=bc<0?'Falling with stocks, not ahead of them':'Moving with stocks'}
+  return{st,cls,txt,bc,sc,now:b.v,rep:br};
+}
+function diagnose(){
+  if(!cur)return null;
+  const g=k=>nowVal(k)?.v,S=cur.snapshot||{};
+  const sp=g('sp500'),hy=g('hy'),y10=g('y10'),vix=g('vix'),br=g('brent'),ur=g('unrate');
+  let ath=cur.pullback?.ath||null;LOG.days.forEach(d=>{if(typeof d.sp500==='number'&&d.sp500>ath)ath=d.sp500});if(sp&&ath&&sp>ath)ath=sp;
+  const dd=sp&&ath?(1-sp/ath)*100:null,brRep=num(S.brent);
+  const ev=[];
+  if(dd!=null)ev.push(`S&P ${dd.toFixed(1)}% below its record`);
+  if(hy!=null)ev.push(hy>400?`credit stressed (${Math.round(hy)}bp)`:hy>=375?`credit wobbling (${Math.round(hy)}bp)`:`credit calm (${Math.round(hy)}bp)`);
+  if(vix!=null)ev.push(vix>30?`panic high (VIX ${vix.toFixed(0)})`:vix>=25?`nerves elevated (VIX ${vix.toFixed(0)})`:`fear low (VIX ${vix.toFixed(0)})`);
+  if(y10!=null)ev.push(y10>5.5?`yields spiking (${y10.toFixed(2)}%)`:`10-yr ${y10.toFixed(2)}%`);
+  if(br!=null)ev.push(`Brent $${br.toFixed(0)}`);
+  ev.push(ur!=null?(ur>=4.5?`unemployment ${ur.toFixed(1)}%: recession signal`:`unemployment ${ur.toFixed(1)}%`):'no recession signal in the data');
+  const c=canary();if(c)ev.push('canary: '+c.txt.charAt(0).toLowerCase()+c.txt.slice(1));
+  const oilShock=br!=null&&((brRep&&br>=brRep*1.15)||br>=115);
+  let d;
+  if(hy!=null&&hy>600)d={name:'Credit crunch',sev:'red',plan:'The buy zone is on hold. Keep building dry powder until spreads stop widening; don’t catch a falling knife.'};
+  else if(hy!=null&&hy>400)d={name:'Credit stress',sev:'red',plan:'The buy-zone rule requires calm credit, so it is on hold. Keep building until spreads fall back under 400bp.'};
+  else if(ur!=null&&ur>=4.5)d={name:'Recession forming',sev:'red',plan:'Expect a deeper drop. Deploy only in tranches, and lean on the major zone (−20%).'};
+  else if(y10!=null&&y10>5.5)d={name:'Rate shock',sev:'red',plan:'Stocks and bonds fall together. Treat Bond Plus with care as “safe” dry powder; cash-like options hold up better.'};
+  else if(oilShock)d={name:'Oil shock',sev:'yellow',plan:'Stagflation risk: inflation up, growth down. Cash tends to beat both funds until oil settles.'};
+  else if(dd!=null&&dd>=10)d={name:'Sentiment correction',sev:'green',plan:'Credit is calm and no recession signal shows. This is the setup the buy-zone rule was written for: the plan points to Deploy — gradual. Your call.'};
+  else if(dd!=null&&dd>=5)d={name:'Pullback',sev:'yellow',plan:'A normal dip with credit calm. Not yet in the buy zone; the plan is unchanged.'};
+  else d={name:'Calm market',sev:'green',plan:'Stocks near their highs and nothing stressed underneath. The plan is unchanged.'};
+  if(d.name==='Sentiment correction'&&hy!=null&&hy>=375)d.plan+=' Watch credit closely: spreads are near the 400bp line.';
+  d.ev=ev;d.canary=c;return d;
 }
 function moveDir(r){
   if(!r.now||typeof r.rep!=='number')return null;
@@ -489,7 +542,8 @@ function renderLiveLayer(){
   const parts=[];
   if(sp&&rep)parts.push(`S&P ${Math.round(sp.v).toLocaleString()} (${chg(IND[0],sp.v,rep)||'unchanged'} since the report)`);
   const crossed=known.filter(r=>r.state==='attention'),near=known.filter(r=>r.state==='watch');
-  if(crossed.length)parts.push('Crossed: '+crossed.map(r=>r.name).join(', '));
+  const Dg=diagnose();if(Dg)parts.push('What kind of drop: '+Dg.name);
+  if(crossed.length)parts.push('Lines crossed: '+crossed.map(r=>r.name).join(', '));
   if(near.length)parts.push('Close: '+near.map(r=>r.name).join(', '));
   if(!crossed.length&&!near.length)parts.push('No plan line is close');
   top.append(el('p',null,parts.join('. ')+'.'));
@@ -498,26 +552,39 @@ function renderLiveLayer(){
   top.append(el('p',null,`The report's call stays ${call}.`+(bzRow?' Its rulebook says a close in the buy zone points to Deploy, to be weighed in the next full report or sooner if you ask. Your call.':'')+(isLatest?' Next full report: '+nextReportDate()+'.':' A newer report exists; pick it from the menu.')));
   const srcLog=rows.some(r=>r.now?.src==='log');
   if(srcLog)top.append(el('div','lm','Some values come from the weekly log and show their date.'));
-  // plan lines panel
+  // plan lines panel: diagnosis → trigger → what's underneath
   box.replaceChildren();
-  box.append(el('p','plintro','Each row is one rule from the report. The shaded end of the bar is the zone that rule watches. If today\u2019s value enters it, the rule is triggered.'));
+  const D=diagnose();
+  if(D){const dc=el('div','diag '+D.sev);dc.append(el('div','dk','What kind of market is this?'),el('div','dn',D.name),el('p','dp',D.plan));
+    const ul=el('ul','dev');D.ev.forEach(x=>ul.append(el('li',null,x)));dc.append(ul);box.append(dc)}
   const key=el('div','plkey');
   const k=(sty,t)=>{const sp=el('span');const i=el('i');i.style.cssText=sty;sp.append(i,document.createTextNode(t));return sp};
   key.append(k('border:2px solid var(--muted)','report day'),k('background:var(--accent)','now (arrow = direction since)'),
     k('border-radius:2px;width:16px;background:color-mix(in srgb,var(--green) 35%,transparent)','green zone = points toward buying'),
-    k('border-radius:2px;width:16px;background:color-mix(in srgb,var(--red) 35%,transparent)','red zone = stress, more caution'));
-  box.append(key);
-  const pl=el('div','pl');
-  rows.forEach(r=>{const row=el('div','plrow');
-    const n=el('div');const ln=el('div','ln');if(r.zone){const sw=el('span','sw '+(r.col||''));ln.append(sw,el('b',null,r.zone+': '))}ln.append(document.createTextNode(r.line));n.append(el('div','nm',r.name),ln);
+    k('border-radius:2px;width:16px;background:color-mix(in srgb,var(--red) 35%,transparent)','red zone = stress'));
+  const mkRow=r=>{const row=el('div','plrow');
+    const n=el('div');if(r.q)n.append(el('div','q',r.q));const ln=el('div','ln');if(r.zone){const sw=el('span','sw '+(r.col||''));ln.append(sw,el('b',null,r.zone+': '))}ln.append(document.createTextNode(r.line));n.append(el('div','nm',r.name),ln);
     const st=el('div','st');
-    if(r.state)st.append(el('span','chip '+(r.state==='attention'?'red':r.state==='watch'?'yellow':'green'),r.state==='attention'?'Crossed':r.state==='watch'?'Close':'Clear'));
+    if(r.state){let cls,t;
+      if(r.group==='trigger'){cls=r.state==='attention'?'green':r.state==='watch'?'yellow':'muted';t=r.state==='attention'?'In zone':r.state==='watch'?'Close':'Not yet'}
+      else if(r.col==='g'){cls=r.state==='attention'?'green':r.state==='watch'?'yellow':'muted';t=r.state==='attention'?'Easing':r.state==='watch'?'Close':'No'}
+      else{cls=r.state==='attention'?'red':r.state==='watch'?'yellow':'green';t=r.state==='attention'?'Warning':r.state==='watch'?'Watch':'Healthy'}
+      st.append(el('span','chip '+cls,t))}
     st.append(el('small',null,(r.now?'Now '+r.f(r.now.v):'—')+(typeof r.rep==='number'?' · was '+r.f(r.rep):'')));
-    const dv=moveDir(r);if(dv)st.append(el('span','dir '+dv.cls,dv.txt));
+    const dv=moveDir(r);if(dv){let c=dv.cls;if(r.col==='g'&&c==='thru')c='away';else if(r.col==='g'&&c==='away'&&/back across/.test(dv.txt))c='toward';st.append(el('span','dir '+c,dv.txt))}
     if(r.what)st.append(el('small',null,r.what));
     if(r.now?.src==='log')st.append(el('span','src','weekly log, '+fmtShort(r.now.date)));
-    row.append(n,pbar(r),st);pl.append(row)});
-  box.append(pl);
+    row.append(n,pbar(r),st);return row};
+  const g1=el('div','grp');g1.append(el('div','gh','1 · The trigger: when the plan acts'),el('p','gp','The only lines tied to an action. Whether to trust them depends on what’s underneath.'));
+  const p1=el('div','pl');rows.filter(r=>r.group==='trigger').forEach(r=>p1.append(mkRow(r)));g1.append(key,p1);box.append(g1);
+  const g2=el('div','grp');g2.append(el('div','gh','2 · What’s underneath: what kind of drop'),el('p','gp','Each gauge answers one question. Together they separate a normal correction from a credit crunch, a rate shock or a recession.'));
+  const p2=el('div','pl');rows.filter(r=>r.group!=='trigger').forEach(r=>p2.append(mkRow(r)));
+  const C=D?.canary;
+  {const row=el('div','plrow');const n=el('div');n.append(el('div','q','Is risky money leaving first?'),el('div','nm','Bitcoin (canary)'),el('div','ln','Not held. Read as an early signal of risk appetite.'));
+    const mid=el('div','cn',C?`Bitcoin ${C.bc>=0?'+':''}${C.bc.toFixed(1)}% vs S&P ${C.sc>=0?'+':''}${C.sc.toFixed(1)}% since the report`:'No reading yet');
+    const st=el('div','st');if(C){st.append(el('span','chip '+C.cls,C.st==='warning'?'Warning':C.st==='watch'?'Watch':C.st==='good'?'Positive':'In step'));st.append(el('small',null,'Now $'+Math.round(C.now).toLocaleString()+' · was $'+Math.round(C.rep).toLocaleString()));st.append(el('small',null,C.txt))}
+    row.append(n,mid,st);p2.append(row)}
+  g2.append(p2);box.append(g2);
   // weekly check strip
   const wsBox=document.getElementById('wkstrip');if(wsBox){wsBox.replaceChildren();
   if(LOG.status.length){const w=el('div','wk');w.append(el('span','lk','Saturday checks'));const dots=el('div','dots');
@@ -622,6 +689,11 @@ function render(r){
   hero.append(k,el('h1',null,r.overall?.headline||''),el('p','sum',r.overall?.text||''));
   hero.append(el('div','meta','Data as of '+(r.dataAsOf||fmtDate(r.date))+(prev?' · compared with the '+fmtDate(prev.date)+' report':' · first report')));
   app.append(hero);
+
+  // 1b. Diagnosis as of the report (frozen)
+  if(r.diagnosis){const dc=el('div','diag '+(r.diagnosis.signal||'yellow'));dc.append(el('div','dk','What kind of market is this? · as of the report'),el('div','dn',r.diagnosis.label||''),el('p','dp',r.diagnosis.text||''));
+    if(r.diagnosis.evidence?.length){const ul=el('ul','dev');r.diagnosis.evidence.forEach(x=>ul.append(el('li',null,x)));dc.append(ul)}
+    app.append(section('Diagnosis',dc))}
 
   // 2. What to do
   const pw=el('div','card');
