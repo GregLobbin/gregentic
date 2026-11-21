@@ -24,7 +24,7 @@ export default {
 
     // ── Health check ────────────────────────────────────
     if (path === '/') {
-      return json({ status: 'GREGENTIC DATA WORKER', version: '4.0', ts: Date.now() });
+      return json({ status: 'GREGENTIC DATA WORKER', version: '4.1', ts: Date.now() });
     }
 
     // ── ADS-B: concurrent adsb.lol + OpenSky, edge-cached ─
