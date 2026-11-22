@@ -482,6 +482,10 @@ function nowVal(key){
   return null;
 }
 const SEV={'on-track':0,watch:1,attention:2};
+// Plan lines: each report can carry its own numeric "lines"; anything missing falls back to the standing rulebook.
+const LINES_DEFAULT={buyZone:10,majorZone:20,hyStress:400,y10High:5.5,y10Low:4.75,vixStress:30,brentLow:85,unrate:4.5};
+const LINES_WATCH={buyZone:2,majorZone:2,hyStress:25,y10High:0.10,y10Low:0.10,vixStress:5,brentLow:4,unrate:0.1};
+function LN(r){const o={...LINES_DEFAULT},src=(r||cur)?.lines||{};for(const k in o)if(typeof src[k]==='number')o[k]=src[k];o.custom=Object.keys(LINES_DEFAULT).some(k=>typeof src[k]==='number'&&src[k]!==LINES_DEFAULT[k]);return o}
 function planLines(){
   if(!cur)return[];
   const S=cur.snapshot||{};
@@ -491,32 +495,32 @@ function planLines(){
   const hy=nowVal('hy');const rows=[];
   let hyRep=null;LOG.days.forEach(d=>{if(d.date<=cur.date&&typeof d.hy==='number')hyRep=d.hy});
   const fmtI=v=>Math.round(v).toLocaleString(),pct=v=>v.toFixed(2)+'%',bp=v=>Math.round(v)+'bp',usd=v=>'$'+v.toFixed(0),vx=v=>v.toFixed(1);
-  const sp=nowVal('sp500');
+  const sp=nowVal('sp500'),L=LN(),W=LINES_WATCH;
   if(ath){
-    const bz=ath*0.9,mz=ath*0.8,credOK=!hy||hy.v<400;
-    rows.push({name:'S&P buy zone',group:'trigger',q:'When does the plan act?',zone:'Buy zone',line:'Close ≤ '+fmtI(bz)+' (−10%), junk spreads < 400bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
-      state:sp?(sp.v<=bz?(credOK?'attention':'watch'):(sp.v<=ath*0.918?'watch':'on-track')):null,
+    const bzF=1-L.buyZone/100,mzF=1-L.majorZone/100,bz=ath*bzF,mz=ath*mzF,credOK=!hy||hy.v<L.hyStress;
+    rows.push({name:'S&P buy zone',group:'trigger',q:'When does the plan act?',zone:'Buy zone',line:'Close ≤ '+fmtI(bz)+' (−'+L.buyZone+'%), junk spreads < '+L.hyStress+'bp',lineV:bz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+      state:sp?(sp.v<=bz?(credOK?'attention':'watch'):(sp.v<=bz/(1-W.buyZone/100)?'watch':'on-track')):null,
       what:sp?(sp.v<=bz?(credOK?'Inside the buy zone; the plan points to Deploy':'Below the line, but credit is stressed'):((sp.v/bz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
-    rows.push({name:'S&P major zone',group:'trigger',q:'When does the plan act more?',zone:'Major buy zone',line:'Close ≤ '+fmtI(mz)+' (−20%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
-      state:sp?(sp.v<=mz?'attention':(sp.v<=ath*0.816?'watch':'on-track')):null,
+    rows.push({name:'S&P major zone',group:'trigger',q:'When does the plan act more?',zone:'Major buy zone',line:'Close ≤ '+fmtI(mz)+' (−'+L.majorZone+'%)',lineV:mz,dir:'below',rep:num(S.sp500),now:sp,f:fmtI,
+      state:sp?(sp.v<=mz?'attention':(sp.v<=mz/(1-W.majorZone/100)?'watch':'on-track')):null,
       what:sp?(sp.v<=mz?'Inside the major zone; the plan points to Deploy+':((sp.v/mz-1)*100).toFixed(1)+'% above the line'):'',col:'g'});
   }
-  rows.push({name:'Junk spreads',group:'gauge',q:'Is credit cracking?',zone:'Stress zone',line:'above 400bp',lineV:400,dir:'above',rep:hyRep,now:hy,f:bp,
-    state:hy?(hy.v>400?'attention':hy.v>=375?'watch':'on-track'):null,what:hy?(hy.v>400?'Credit stress line crossed':(400-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
+  rows.push({name:'Junk spreads',group:'gauge',q:'Is credit cracking?',zone:'Stress zone',line:'above '+L.hyStress+'bp',lineV:L.hyStress,dir:'above',rep:hyRep,now:hy,f:bp,
+    state:hy?(hy.v>L.hyStress?'attention':hy.v>=L.hyStress-W.hyStress?'watch':'on-track'):null,what:hy?(hy.v>L.hyStress?'Credit stress line crossed':(L.hyStress-hy.v).toFixed(0)+'bp below the line'):'No reading yet',col:'r'});
   const y=nowVal('y10');
-  rows.push({name:'10-yr yield (high)',group:'gauge',q:'Is it a rate shock?',zone:'Stress zone',line:'above 5.50%',lineV:5.5,dir:'above',rep:num(S.y10),now:y,f:pct,
-    state:y?(y.v>5.5?'attention':y.v>=5.4?'watch':'on-track'):null,what:y?(y.v>5.5?'Stress line crossed':(5.5-y.v).toFixed(2)+' pts below the line'):'',col:'r'});
-  rows.push({name:'10-yr yield (low)',group:'gauge',q:'Are rates easing?',zone:'Easing zone',line:'below 4.75% (rates easing)',lineV:4.75,dir:'below',rep:num(S.y10),now:y,f:pct,
-    state:y?(y.v<4.75?'attention':y.v<=4.85?'watch':'on-track'):null,what:y?(y.v<4.75?'Easing line crossed':(y.v-4.75).toFixed(2)+' pts above the line'):'',col:'g'});
+  rows.push({name:'10-yr yield (high)',group:'gauge',q:'Is it a rate shock?',zone:'Stress zone',line:'above '+L.y10High.toFixed(2)+'%',lineV:L.y10High,dir:'above',rep:num(S.y10),now:y,f:pct,
+    state:y?(y.v>L.y10High?'attention':y.v>=L.y10High-W.y10High?'watch':'on-track'):null,what:y?(y.v>L.y10High?'Stress line crossed':(L.y10High-y.v).toFixed(2)+' pts below the line'):'',col:'r'});
+  rows.push({name:'10-yr yield (low)',group:'gauge',q:'Are rates easing?',zone:'Easing zone',line:'below '+L.y10Low.toFixed(2)+'% (rates easing)',lineV:L.y10Low,dir:'below',rep:num(S.y10),now:y,f:pct,
+    state:y?(y.v<L.y10Low?'attention':y.v<=L.y10Low+W.y10Low?'watch':'on-track'):null,what:y?(y.v<L.y10Low?'Easing line crossed':(y.v-L.y10Low).toFixed(2)+' pts above the line'):'',col:'g'});
   const v=nowVal('vix');
-  rows.push({name:'VIX (fear gauge)',group:'gauge',q:'Is it panic?',zone:'Stress zone',line:'above 30',lineV:30,dir:'above',rep:num(S.vix),now:v,f:vx,
-    state:v?(v.v>30?'attention':v.v>=25?'watch':'on-track'):null,what:v?(v.v>30?'Fear spike: above the stress line':(30-v.v).toFixed(1)+' below the line'):'',col:'r'});
+  rows.push({name:'VIX (fear gauge)',group:'gauge',q:'Is it panic?',zone:'Stress zone',line:'above '+L.vixStress,lineV:L.vixStress,dir:'above',rep:num(S.vix),now:v,f:vx,
+    state:v?(v.v>L.vixStress?'attention':v.v>=L.vixStress-W.vixStress?'watch':'on-track'):null,what:v?(v.v>L.vixStress?'Fear spike: above the stress line':(L.vixStress-v.v).toFixed(1)+' below the line'):'',col:'r'});
   const b=nowVal('brent');
-  rows.push({name:'Brent oil',group:'gauge',q:'Is it an oil shock?',zone:'Easing zone',line:'below $85 (oil pressure easing)',lineV:85,dir:'below',rep:num(S.brent),now:b,f:usd,
-    state:b?(b.v<85?'attention':b.v<=89?'watch':'on-track'):null,what:b?(b.v<85?'Easing line crossed':'$'+(b.v-85).toFixed(0)+' above the line'):'',col:'g'});
+  rows.push({name:'Brent oil',group:'gauge',q:'Is it an oil shock?',zone:'Easing zone',line:'below $'+L.brentLow+' (oil pressure easing)',lineV:L.brentLow,dir:'below',rep:num(S.brent),now:b,f:usd,
+    state:b?(b.v<L.brentLow?'attention':b.v<=L.brentLow+W.brentLow?'watch':'on-track'):null,what:b?(b.v<L.brentLow?'Easing line crossed':'$'+(b.v-L.brentLow).toFixed(0)+' above the line'):'',col:'g'});
   const u=nowVal('unrate');
-  if(u)rows.push({name:'Unemployment',group:'gauge',q:'Is a recession starting?',zone:'Stress zone',line:'4.5% or higher',lineV:4.5,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
-    state:u.v>=4.5?'attention':u.v>=4.4?'watch':'on-track',what:u.v>=4.5?'Stress line crossed':(4.5-u.v).toFixed(1)+' pts below the line',col:'r'});
+  if(u)rows.push({name:'Unemployment',group:'gauge',q:'Is a recession starting?',zone:'Stress zone',line:L.unrate.toFixed(1)+'% or higher',lineV:L.unrate,dir:'above',rep:null,now:u,f:v=>v.toFixed(1)+'%',
+    state:u.v>=L.unrate?'attention':u.v>=L.unrate-W.unrate?'watch':'on-track',what:u.v>=L.unrate?'Stress line crossed':(L.unrate-u.v).toFixed(1)+' pts below the line',col:'r'});
   return rows;
 }
 
@@ -640,7 +644,7 @@ function renderLiveLayer(){
     if(r.what)st.append(el('small',null,r.what));
     if(r.now?.src==='log')st.append(el('span','src','weekly log, '+fmtShort(r.now.date)));
     row.append(n,pbar(r),st);return row};
-  const g1=el('div','grp');g1.append(el('div','gh','1 · The trigger: when the plan acts'),el('p','gp','The only lines tied to an action. Whether to trust them depends on what’s underneath.'));
+  const g1=el('div','grp');g1.append(el('div','gh','1 · The trigger: when the plan acts'),el('p','gp','The only lines tied to an action. Whether to trust them depends on what’s underneath. '+(cur.lines?'Lines come from this report'+(LN().custom?', which changed some from the standing rulebook':'')+'.':'Lines are the standing rulebook (this report predates report-specific lines).')));
   const p1=el('div','pl');rows.filter(r=>r.group==='trigger').forEach(r=>p1.append(mkRow(r)));g1.append(key,p1);box.append(g1);
   const g2=el('div','grp');g2.append(el('div','gh','2 · What’s underneath: what kind of drop, and how much cushion'),el('p','gp','Each gauge answers one question. Together they separate a normal correction from a credit crunch, a rate shock or a recession. Valuation then sets the pace of buying.'));
   const p2=el('div','pl');rows.filter(r=>r.group!=='trigger').forEach(r=>p2.append(mkRow(r)));
@@ -695,22 +699,23 @@ function nextReportDate(){const n=new Date();let d=new Date(n.getFullYear(),n.ge
 
 // ── PULLBACK RULER (drawn at real pixel width so text stays readable on phones) ──
 function ruler(p,Wpx,nowLevel){
+  const LZ=LN(),bzp=-LZ.buyZone,mzp=-LZ.majorZone;
   const W=Math.round(Math.max(300,Math.min(980,Wpx))),narrow=W<560,H=98,pad=narrow?18:36,minPct=-25;
   const x=v=>pad+(v-minPct)/(0-minPct)*(W-2*pad);
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   const dd=(p.level/p.ath-1)*100;svg.setAttribute('role','img');svg.setAttribute('aria-label',`S&P 500 is ${Math.abs(dd).toFixed(1)}% below its record high`);
   const add=(t,a,tx)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);if(tx!=null)n.textContent=tx;svg.append(n)};
   const G=css('--green'),Y=css('--yellow'),D=css('--dim'),M=css('--muted'),A=css('--accent'),B=css('--border'),F=css('--sans');
-  add('rect',{x:x(-25),y:36,width:x(-20)-x(-25),height:14,fill:G,opacity:.6});
-  add('rect',{x:x(-20),y:36,width:x(-10)-x(-20),height:14,fill:G,opacity:.3});
-  add('rect',{x:x(-10),y:36,width:x(0)-x(-10),height:14,fill:css('--bg3')});
+  add('rect',{x:x(-25),y:36,width:x(mzp)-x(-25),height:14,fill:G,opacity:.6});
+  add('rect',{x:x(mzp),y:36,width:x(bzp)-x(mzp),height:14,fill:G,opacity:.3});
+  add('rect',{x:x(bzp),y:36,width:x(0)-x(bzp),height:14,fill:css('--bg3')});
   const ticks=narrow?[-20,-10,0]:[-25,-20,-15,-10,-5,0];
   ticks.forEach(t=>{add('line',{x1:x(t),x2:x(t),y1:32,y2:54,stroke:B,'stroke-width':1.5});
     add('text',{x:x(t),y:71,'text-anchor':t===0?'end':'middle','font-size':13,fill:D,'font-family':F},t===0?'Record':t+'%');
     if(t<0)add('text',{x:x(t),y:89,'text-anchor':'middle','font-size':13,fill:M,'font-family':F},Math.round(p.ath*(1+t/100)).toLocaleString())});
-  if(narrow)add('text',{x:(x(-25)+x(-10))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY ZONE');
-  else{add('text',{x:(x(-25)+x(-20))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY MORE');
-       add('text',{x:(x(-20)+x(-10))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY ZONE')}
+  if(narrow)add('text',{x:(x(-25)+x(bzp))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY ZONE');
+  else{add('text',{x:(x(-25)+x(mzp))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY MORE');
+       add('text',{x:(x(mzp)+x(bzp))/2,y:26,'text-anchor':'middle','font-size':13,fill:G,'font-family':F,'font-weight':'bold'},'BUY ZONE')}
   const mx=x(Math.max(minPct,Math.min(0,dd)));
   const hasNow=typeof nowLevel==='number';
   if(hasNow){
@@ -817,7 +822,7 @@ function render(r){
   const ax=el('div','axis');ax.append(el('span',null,'◀ move cash into stocks'),el('span',null,'add to Bond Plus ▶'));
   pw.append(pt,lad,ax,el('p','action',r.powder?.action||''));
   if(r.pullback?.ath&&r.pullback?.level){
-    const p=r.pullback,dd=(1-p.level/p.ath)*100,zone=p.ath*0.9,need=(1-zone/p.level)*100;
+    const p=r.pullback,dd=(1-p.level/p.ath)*100,zone=p.ath*(1-LN(r).buyZone/100),need=(1-zone/p.level)*100;
     pw.append(el('p','dist',need>0?`The S&P is ${dd.toFixed(1)}% below its record. The buy zone starts about ${need.toFixed(0)}% lower, near ${Math.round(zone).toLocaleString()}.`:`The S&P is ${dd.toFixed(1)}% below its record — inside the buy zone.`));
     const rb=el('div','ruler');rb.id='ruler';pw.append(rb);
   }

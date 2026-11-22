@@ -677,5 +677,15 @@
    }
   ],
   "note": "Interpretation, not a rule. These insights add context and never change the dry-powder call on their own."
+ },
+ "lines": {
+  "buyZone": 10,
+  "majorZone": 20,
+  "hyStress": 400,
+  "y10High": 5.5,
+  "y10Low": 4.75,
+  "vixStress": 30,
+  "brentLow": 85,
+  "unrate": 4.5
  }
 }
