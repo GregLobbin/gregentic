@@ -204,6 +204,17 @@ a.tile:hover{background:var(--bg3)}
 .vbar .voff{position:absolute;right:-2px;top:-16px;font-size:11px;color:var(--red);font-weight:600}
 .vverdict{margin-top:8px;padding:10px 12px;border-left:3px solid currentColor;background:var(--bg2);display:grid;gap:4px;font-size:14px;color:var(--dim)}
 .vverdict.red{border-color:var(--red)}.vverdict.yellow{border-color:var(--yellow)}.vverdict.green{border-color:var(--green)}
+.ins-net{display:grid;gap:4px;padding:10px 14px;border-left:4px solid var(--yellow);background:var(--bg3);margin-bottom:14px;font-size:15px}
+.ins-net.green{border-left-color:var(--green)}.ins-net.red{border-left-color:var(--red)}
+.ins-net .lbl{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.vintro{margin:0 0 6px;font-size:14px;color:var(--muted);max-width:75ch}
+.ins-conf{font-size:13px;color:var(--dim)}
+.ins-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px}
+@media(max-width:700px){.ins-grid{grid-template-columns:1fr}}
+.ins-item p{margin:2px 0 4px;font-size:14px;color:var(--dim)}
+.ins-k{display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--accent)}
+.ins-t{font-weight:600;font-size:15px}
+.ins-l{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px}.ins-l a{color:var(--muted)}
 .vverdict .vh{font-weight:700;color:var(--text)}
 .plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
@@ -773,6 +784,28 @@ function render(r){
     if(r.diagnosis.evidence?.length){const ul=el('ul','dev');r.diagnosis.evidence.forEach(x=>ul.append(el('li',null,x)));dc.append(ul)}
     app.append(section('Diagnosis',dc))}
 
+  // 1c. Valuation as of the report (frozen)
+  if(r.valuation?.lenses?.length){const R=r.valuation,c=el('div','card');
+    const BANDS={buffett:[75,120],cape:[20,30],trailing:[14,20]};
+    const keyOf=n=>/buffett/i.test(n)?'buffett':/cape|shiller/i.test(n)?'cape':/trailing/i.test(n)?'trailing':'forward';
+    const lc=x=>LCLS[(x||'').toLowerCase()]||'yellow';
+    c.append(el('p','vintro','Valuation sets the pace of buying, never whether to buy. Three long-run measures use actual history; the forward P/E uses analysts’ forecasts. The plan follows the more cautious view.'));
+    const pl=el('div','pl');
+    R.lenses.forEach(l=>{const k=keyOf(l.name||''),u=l.unit==='%'?'%':'x',f=v=>u==='%'?Math.round(v)+'%':(+v).toFixed(1)+'x';
+      const row=el('div','plrow');const n=el('div');n.append(el('div','nm',l.name||''));const L=LENS.find(x=>x.k===k);n.append(el('div','ln',L?L.q:'Price vs the next 12 months of forecast earnings'));
+      const mid=el('div','cn');if(typeof l.value==='number'){mid.append(document.createTextNode(`≈${f(l.value)}`+(l.avg?` · ${(l.value/l.avg).toFixed(1)}× its ${k==='forward'?'10-yr':'long-run'} average (${f(l.avg)})`:'')));
+        const b=k==='forward'?[l.avg*0.9,l.avg*1.1]:BANDS[k];if(b&&l.avg){const hi=k==='forward'?Math.max(28,l.value*1.15):Math.max(b[1]*1.6,l.avg*2.6);mid.append(vbar(k==='forward'?10:0,hi,b[0],b[1],l.avg,l.value,f))}}
+      if(l.note)mid.append(el('div','src',l.note));
+      const st=el('div','st');st.append(el('span','chip '+lc(l.level),l.level||''));
+      if(l.link){const a=el('a','src','Source');a.href=l.link;a.target='_blank';a.rel='noopener';st.append(a)}
+      row.append(n,mid,st);pl.append(row)});
+    c.append(pl);
+    const vd=el('div','vverdict '+lc(R.overall));
+    vd.append(el('div','vh','Verdict: '+(R.overall||'')+(R.longrun&&R.forward&&R.longrun!==R.forward?` (long-run ${R.longrun.toLowerCase()}, forward ${R.forward.toLowerCase()})`:'')));
+    if(R.pace)vd.append(el('div',null,'Pace: '+R.pace));
+    if(typeof R.gap==='number')vd.append(el('div','src',`Bond gap ${R.gap.toFixed(1)} pts (forward earnings yield minus the 10-yr): `+(R.gap<1?'bonds compete.':R.gap<2?'modest cushion.':'healthy cushion.')));
+    c.append(vd);app.append(section('Market valuation',c))}
+
   // 2. What to do
   const pw=el('div','card');
   const pt=el('div','pw-top');pt.append(el('span','lbl','Dry-powder call'),el('span','pw-name',r.powder?.label||''));
@@ -800,6 +833,19 @@ function render(r){
   const ol=el('div','card');(r.outlook||[]).forEach(o=>{const row=el('div','olrow');const hz=el('div','hz',String(o.days));hz.append(el('small',null,'DAYS'));const ln=el('div','lean');ln.append(sig(o.signal),el('span',null,o.lean));row.append(hz,ln,el('p',null,o.text));ol.append(row)});
   if(r.interim){app.append(section('Between reports'+(r.interim.since?' · '+fmtShort(r.interim.since)+' → '+fmtShort(r.date):''),ch));app.append(section('Outlook',ol))}
   else{two.append(section(prev?'What changed since '+fmtShort(prev.date):'Where things stand',ch),section('Outlook',ol));app.append(two)}
+
+  // 5b. Big picture: AI insights (interpretation, frozen with the report)
+  if(r.insights?.items?.length){const I=r.insights,c=el('div','card ins');
+    if(I.net){const nt=el('div','ins-net '+(I.net.signal||'yellow'));nt.append(el('span','lbl','Net read'),el('span',null,I.net.text||''));
+      if(I.net.confidence)nt.append(el('span','ins-conf','Confidence: '+I.net.confidence));c.append(nt)}
+    const KIND={history:'History rhymes',mood:'Mood of the market',world:'The world',risk:'How this could be wrong'};
+    const g=el('div','ins-grid');
+    I.items.forEach(x=>{const b=el('div','ins-item');const h=el('div','ins-k');h.append(sig(x.signal||'yellow'),el('span',null,KIND[x.kind]||x.kind||''));
+      b.append(h);if(x.title)b.append(el('div','ins-t',x.title));b.append(el('p',null,x.text||''));
+      if(x.links?.length){const ls=el('div','ins-l');x.links.forEach(L=>{const a=el('a',null,L.title||'Source');a.href=L.url;a.target='_blank';a.rel='noopener';ls.append(a)});b.append(ls)}
+      g.append(b)});
+    c.append(g,el('p','note',I.note||'Interpretation, not a rule. These insights add context and never change the dry-powder call on their own.'));
+    app.append(section('Big picture · AI insights',c))}
 
   // 6. What would change the call
   const tr=el('div','three');
