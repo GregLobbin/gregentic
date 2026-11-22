@@ -215,6 +215,7 @@ a.tile:hover{background:var(--bg3)}
 .ins-k{display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--accent)}
 .ins-t{font-weight:600;font-size:15px}
 .ins-l{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px}.ins-l a{color:var(--muted)}
+.revnote{border:1px dashed var(--border);padding:8px 12px;margin:0 0 14px;font-size:14px;color:var(--dim)}
 .vverdict .vh{font-weight:700;color:var(--text)}
 .plintro{font-size:14px;color:var(--dim);margin:0 0 8px;max-width:72ch}
 .plkey{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
@@ -597,7 +598,7 @@ function renderLiveLayer(){
   const top=document.getElementById('livebar'),box=document.getElementById('plines');if(!cur||!top||!box)return;
   const rows=planLines(),known=rows.filter(r=>r.state);
   const worst=known.reduce((a,r)=>SEV[r.state]>SEV[a]?r.state:a,'on-track');
-  const isLatest=LIST[0]?.date===cur.date;
+  const isLatest=LIST[0]&&KEY(LIST[0])===cur._key;
   // banner
   top.className='livebar '+worst;top.replaceChildren();
   const od=document.getElementById('ovdet');if(od&&!od.dataset.touched)od.open=(worst==='attention');
@@ -770,7 +771,9 @@ function render(r){
   ov.append(odt);
   const wk=el('div');wk.id='wkstrip';ov.append(wk);
   app.append(ov);
-  const dv=el('div','rptdiv');dv.append(el('span',null,'The '+fmtDate(r.date)+' report · as published'));app.append(dv);
+  const dv=el('div','rptdiv');dv.append(el('span',null,'The '+fmtDate(r.date)+' report'+(r.revision?.n?' · Rev '+r.revision.n:'')+' · as published'));app.append(dv);
+  if(r.revision?.n){const rv=el('div','revnote');rv.append(el('b',null,`Rev ${r.revision.n} · issued ${fmtDate(r.revision.issued)}. `),document.createTextNode(r.revision.note||''));app.append(rv)}
+  else{const nr=LIST.find(x=>x.date===r.date&&x.rev);if(nr){const rv=el('div','revnote');rv.append(el('b',null,'Original version. '),document.createTextNode(`A revised version (Rev ${nr.rev}) adds new sections; pick it from the menu.`));app.append(rv)}}
 
   // 1. Bottom line
   const hero=el('section','card hero '+(r.overall?.signal||''));
@@ -884,12 +887,13 @@ function render(r){
 }
 
 let LIST=[];
-async function getReport(date){const r=await fetch(`reports/${date}.json`,{cache:'no-cache'});if(!r.ok)throw 0;return r.json()}
+const KEY=x=>x.id||x.date;
+async function getReport(k){const r=await fetch(`reports/${k}.json`,{cache:'no-cache'});if(!r.ok)throw 0;const j=await r.json();j._key=k;return j}
 async function loadReport(date){
   try{
     cur=await getReport(date);
-    const i=LIST.findIndex(x=>x.date===date),p=LIST[i+1];
-    prev=p?await getReport(p.date).catch(()=>null):null;
+    const i=LIST.findIndex(x=>KEY(x)===date),p=LIST.slice(i+1).find(x=>x.date<cur.date);
+    prev=p?await getReport(KEY(p)).catch(()=>null):null;
     await loadLog();
     render(cur);
   }catch(e){document.getElementById('app').replaceChildren(el('div','msg','Report '+date+' could not be loaded.'))}
@@ -902,10 +906,10 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
   const pick=document.getElementById('pick');
   try{
     const r=await fetch('reports/index.json',{cache:'no-cache'});const idx=await r.json();
-    const list=LIST=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const list=LIST=(idx.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||(b.rev||0)-(a.rev||0));
     if(!list.length)throw 0;
-    pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+' · '+(x.label||'')+' · '+(x.powder||''));o.value=x.date;pick.append(o)});
-    const want=location.hash.slice(1),sel=list.find(x=>x.date===want)?.date||list[0].date;pick.value=sel;loadReport(sel);
+    pick.replaceChildren();list.forEach(x=>{const o=el('option',null,fmtDate(x.date)+(x.rev?' · Rev '+x.rev:'')+' · '+(x.label||'')+' · '+(x.powder||''));o.value=KEY(x);pick.append(o)});
+    const want=location.hash.slice(1),sel=KEY(list.find(x=>KEY(x)===want)||list[0]);pick.value=sel;loadReport(sel);
     pick.addEventListener('change',e=>{location.hash=e.target.value;loadReport(e.target.value);window.scrollTo({top:0})});
   }catch(e){pick.replaceChildren(el('option',null,'—'));document.getElementById('app').replaceChildren(el('div','msg','No reports yet. Reports post monthly, around the 20th.'))}
 })();

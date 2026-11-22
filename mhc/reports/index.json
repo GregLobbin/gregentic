@@ -17,6 +17,15 @@
    "signal": "yellow",
    "label": "Yellow",
    "powder": "Build — steady"
+  },
+  {
+   "date": "2026-11-20",
+   "id": "2026-11-20-r1",
+   "rev": 1,
+   "signal": "yellow",
+   "label": "Yellow",
+   "powder": "Build — steady"
   }
- ]
+ ],
+ "readme": "Revisions: an entry with \"id\" and \"rev\" is a revised version of the same-date report; its file is reports/<id>.json. Treat the highest rev for a date as that report (the latest report is the newest date's highest rev). The original stays listed for the record."
 }
