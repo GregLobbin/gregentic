@@ -131,7 +131,7 @@ a.tile:hover{background:var(--bg3)}
 .rptdiv{display:flex;align-items:center;gap:12px;margin-top:8px}
 .rptdiv::before,.rptdiv::after{content:"";flex:1;height:2px;background:var(--border)}
 .rptdiv span{font-family:var(--mono);font-size:13px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;text-align:center;min-width:0}
-.ovdet>summary{cursor:pointer;font-size:14px;color:var(--accent);list-style:none}
+.ovdet>summary{cursor:pointer;font-size:14px;color:var(--accent);list-style:none;display:inline-block;padding:6px 12px;border:1px solid var(--accent);border-radius:4px}
 .ovdet>summary::-webkit-details-marker{display:none}
 .ovdet>summary::before{content:'▸ ';}
 .ovdet[open]>summary::before{content:'▾ ';}
@@ -605,7 +605,7 @@ function renderLiveLayer(){
   const isLatest=LIST[0]&&KEY(LIST[0])===cur._key;
   // banner
   top.className='livebar '+worst;top.replaceChildren();
-  const od=document.getElementById('ovdet');if(od&&!od.dataset.touched)od.open=(worst==='attention');
+  const od=document.getElementById('ovdet');if(od&&!od.dataset.touched){let pref=null;try{pref=localStorage.getItem('mhc-ovdet')}catch(_){}od.open=pref!=='closed'}
   const lt=el('div','lt');lt.append(el('b',null,STATE_TXT[worst]));top.append(lt);
   const sp=nowVal('sp500'),rep=num(cur.snapshot?.sp500);
   const parts=[];
@@ -768,7 +768,7 @@ function render(r){
   oh.append(h2,aside);ov.append(oh);
   ov.append(el('p','ovsub','Current market numbers compared with the '+fmtDate(r.date)+' report. Not part of the report: it never changes the report\'s call.'));
   const lb=el('div','livebar');lb.id='livebar';lb.append(el('span','lk','Loading…'));ov.append(lb);
-  const odt=el('details','ovdet');odt.id='ovdet';const sum=el('summary',null,'Details: plan lines, S&P vs its record, key numbers now');odt.append(sum);const inn=el('div','ovin');odt.append(inn);
+  const odt=el('details','ovdet');odt.id='ovdet';const sum=el('summary',null,'Details: the trigger, what’s underneath, valuation, key numbers now');sum.addEventListener('click',()=>{odt.dataset.touched='1';setTimeout(()=>{try{localStorage.setItem('mhc-ovdet',odt.open?'open':'closed')}catch(_){}},0)});odt.append(sum);const inn=el('div','ovin');odt.append(inn);
   odt.addEventListener('toggle',()=>{if(odt.open)drawRuler()});odt.querySelector('summary').addEventListener('click',()=>{odt.dataset.touched='1'});
   const b1=el('div','ovblk');b1.append(el('h3',null,"The report's tripwires"));const plc=el('div');plc.id='plines';b1.append(plc);inn.append(b1);
   const b2=el('div','ovblk');b2.append(el('h3',null,'S&P vs its record, now'));const rn=el('div','ruler');rn.id='ruler-now';b2.append(rn);inn.append(b2);
