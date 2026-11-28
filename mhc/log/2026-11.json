@@ -149,7 +149,7 @@
    "sp500": 7175.83,
    "y10": 5.04,
    "y30": 5.4,
-   "bill13": null,
+   "bill13": 4.16,
    "vix": 28.44,
    "hy": 352,
    "brent": 91.98,
@@ -160,11 +160,55 @@
    "sp500": 6910.39,
    "y10": 4.92,
    "y30": null,
-   "bill13": null,
+   "bill13": 4.13,
    "vix": 35.89,
-   "hy": null,
+   "hy": 376,
    "brent": null,
    "btc": 58831
+  },
+  {
+   "date": "2026-11-23",
+   "sp500": 7237.17,
+   "y10": 4.92,
+   "y30": null,
+   "bill13": 4.18,
+   "vix": 26.62,
+   "hy": 363,
+   "brent": null,
+   "btc": null
+  },
+  {
+   "date": "2026-11-24",
+   "sp500": 7201.09,
+   "y10": 4.91,
+   "y30": null,
+   "bill13": 4.18,
+   "vix": 26.36,
+   "hy": 372,
+   "brent": null,
+   "btc": null
+  },
+  {
+   "date": "2026-11-25",
+   "sp500": 7182.78,
+   "y10": 4.85,
+   "y30": null,
+   "bill13": 4.16,
+   "vix": 28.29,
+   "hy": 377,
+   "brent": null,
+   "btc": null
+  },
+  {
+   "date": "2026-11-27",
+   "sp500": 7297.49,
+   "y10": 4.94,
+   "y30": null,
+   "bill13": null,
+   "vix": 23.81,
+   "hy": null,
+   "brent": 95.44,
+   "btc": 59833
   }
  ],
  "notes": [
@@ -195,6 +239,24 @@
    "text": "AI-chip rout, Nvidia −14%: S&P −3.7% into correction, VIX 35.9, 10-yr −0.12 pts.",
    "swan": "AI unwind",
    "source": "https://pro.thestreet.com/market-commentary/the-sp-500s-worst-week-since-april-2025-ends-in-a-correction"
+  },
+  {
+   "date": "2026-11-23",
+   "text": "Nvidia reinstates Huang as CEO, stock +31.5%: S&P +4.7%, Nasdaq +6.5%; VIX falls to 26.6.",
+   "swan": "AI unwind",
+   "source": "https://247wallst.com/investing/2026/11/28/one-day-left-the-sp-500-needs-a-huge-monday-to-avoid-its-worst-november-since-2008/"
+  },
+  {
+   "date": "2026-11-25",
+   "text": "Hot October PCE (3.8%, core 3.3%): S&P fell 3% intraday, closed −0.3%; 10-yr 4.85%.",
+   "swan": "Fed over-tightens",
+   "source": "https://tastylive.substack.com/p/the-weekly-recap-the-four-day-comeback"
+  },
+  {
+   "date": "2026-11-27",
+   "text": "Hormuz tanker attacks, Saudi Jazan refinery hit; Iran vows strait stays shut: Brent $95.44, +3% on week.",
+   "swan": "Wider Gulf war",
+   "source": "https://www.hawaiitribune-herald.com/2026/11/28/nation-world-news/oil-notches-first-weekly-gain-in-november-on-supply-fears/"
   }
  ],
  "flags": [
@@ -217,17 +279,40 @@
    "date": "2026-11-20",
    "level": "attention",
    "text": "Stress line: VIX closed above 30 (35.89)"
+  },
+  {
+   "date": "2026-11-25",
+   "level": "watch",
+   "text": "Junk spreads 377bp, within 25bp of the 400bp stress line"
+  },
+  {
+   "date": "2026-11-25",
+   "level": "watch",
+   "text": "VIX in the 25–30 watch range (28.29; also 26.62 Nov 23, 26.36 Nov 24)"
+  },
+  {
+   "date": "2026-11-25",
+   "level": "watch",
+   "text": "10-yr 4.85%, within 0.10 pts of the 4.75% easing line"
   }
  ],
  "runs": [
   "2026-11-14",
-  "2026-11-21"
+  "2026-11-21",
+  "2026-11-28"
  ],
  "status": [
   {
    "date": "2026-11-21",
    "state": "attention",
    "text": "⚠️ Needs attention. Fri Nov 20: S&P closed at 6,910, 11.6% below its record — inside the 10% buy zone (~7,037); junk spreads still calm (352bp). Fear gauge (VIX) also closed above 30 (35.9).\nThe plan points to moving to Deploy. Not a major-zone move (that's ~6,255).\nYour call; the next full report is Dec 20. Reply in Claude if you want an early full report. Not financial advice.\nhttps://gregentic.com/mhc/"
+  },
+  {
+   "date": "2026-11-28",
+   "state": "watch",
+   "diagnosis": "Pullback",
+   "valuation": "Rich",
+   "text": "👀 Watch — no plan line crossed this week. S&P closed Fri at 7,297, 6.7% below its record, back above the buy zone (~7,037) after Monday's +4.7% rebound.\nClose to lines: junk spreads 377bp (23bp under the 400bp stress line); VIX 28.3 on Wed (under 30); 10-yr dipped to 4.85% (0.10 above the 4.75% easing line).\nMarket type: Pullback — S&P 6.7% below record, credit calm (377bp), unemployment 4.1%; valuation Rich (long-run Rich: CAPE ~38.7, Buffett ~215%; forward ~17.6x vs 19.1x avg).\nPlan unchanged: Build — steady. Last week's Nov 20 dip into the buy zone remains your call; next full report Dec 20. Not financial advice.\nhttps://gregentic.com/mhc/"
   }
  ]
 }
